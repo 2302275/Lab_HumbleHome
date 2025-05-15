@@ -23,6 +23,5 @@ Make sure you have the following installed on your system:
 If you have cloned or copied the project directory:
 
 ```bash
-git clone https://github.com/yourusername/your-repo.git
 cd your-repo
 docker-compose up --build
