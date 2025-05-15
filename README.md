@@ -23,5 +23,5 @@ Make sure you have the following installed on your system:
 If you have cloned or copied the project directory:
 
 ```bash
-cd your-repo
+cd humblehome
 docker-compose up --build
