@@ -24,7 +24,7 @@ If you have cloned or copied the project directory:
 
 ```bash
 # 1. Navigate into the project folder
-cd humblehome-app
+cd humblehome
 
 # 2. Build the Docker image
 docker build -t humblehome .
