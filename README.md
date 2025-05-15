@@ -1,13 +1,16 @@
 # ICT2216_SSD_HumbleHome
 
-## Team 33 HumbleHome
-Team Members:
-# ALTIUS CHUA WEN XIANG - 2301845
-# BRANDON HII QING RONG - 2301916
-# CHAN JUN XIANG JORDAN - 2302141
-# CHEE POH CHUAN        - 2302068
-# LEE TING HOW JUSTIN   - 2302275
-# TAN WENG HONG ISAAC   - 2302088
+## Team 33 — HumbleHome
+
+| Name                    | Student ID |
+|-------------------------|------------|
+| Altius Chua Wen Xiang  | 2301845    |
+| Brandon Hii Qing Rong  | 2301916    |
+| Chan Jun Xiang Jordan  | 2302141    |
+| Chee Poh Chuan         | 2302068    |
+| Lee Ting How Justin    | 2302275    |
+| Tan Weng Hong Isaac    | 2302088    |
+
 
 ## Prerequisites
 
