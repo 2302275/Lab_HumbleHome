@@ -23,11 +23,6 @@ Make sure you have the following installed on your system:
 If you have cloned or copied the project directory:
 
 ```bash
-# 1. Navigate into the project folder
-cd humblehome
-
-# 2. Build the Docker image
-docker build -t humblehome .
-
-# 3. Run the container
-docker run -d -p 3000:3000 humblehome
+git clone https://github.com/yourusername/your-repo.git
+cd your-repo
+docker-compose up --build
