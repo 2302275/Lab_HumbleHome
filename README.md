@@ -9,6 +9,7 @@
 | Chan Jun Xiang Jordan  | 2302141    |
 | Chee Poh Chuan         | 2302068    |
 | Lee Ting How Justin    | 2302275    |
+| Loh Jun Jie            | 2201694    |
 | Tan Weng Hong Isaac    | 2302088    |
 
 
