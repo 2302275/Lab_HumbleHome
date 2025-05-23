@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const Header = () => (
   <header className="w-5/6 flex justify-between items-center p-4 border-b shadow-sm bg-page">
@@ -20,6 +21,8 @@ const Header = () => (
     </form>
     <div className="flex items-center gap-4">
       <span>Welcome Back</span>
+      <Link to="/login" className="text-accent hover:underline">Login</Link>
+      <Link to="/register" className="text-accent hover:underline">Register</Link>
     </div>
   </header>
 );
