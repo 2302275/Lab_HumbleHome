@@ -5,6 +5,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProductDetail from './pages/ProductDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ListOfReviews from './pages/ListOfReviews';
+
 
 const product = {
   name: '3D Printed Gear',
@@ -89,6 +91,8 @@ export default function App() {
           <Route path="/product/:id" element={<ProductDetail products={products} />} />
           <Route path="/register" element={<Register/>} />
           <Route path="/login" element={<Login/>} />
+          <Route path="/reviews" element={<ListOfReviews/>} />
+
         </Routes>
       </div>
     </Router>

@@ -23,8 +23,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: secret
       MYSQL_DATABASE: humblehome
-      MYSQL_USER: root
-      MYSQL_PASSWORD: secret
     ports:
       - "3306:3306"
     volumes:

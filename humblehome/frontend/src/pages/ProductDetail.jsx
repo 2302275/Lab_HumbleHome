@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import STLViewer from '../STLViewer'
+import ReviewSlider from '../components/ReviewSlider';
 
 export default function ProductDetail({ products }) {
   const { id } = useParams();
@@ -9,6 +10,7 @@ export default function ProductDetail({ products }) {
   if (!product) return <p>Product not found.</p>;
 
   return (
+    <>
     <div className="w-3/4 p-8 flex">
         <aside className="w-1/4 pr-8">
             <Link to="/" className="text-blue-500 underline mb-4 block">
@@ -31,6 +33,12 @@ export default function ProductDetail({ products }) {
                 </div>
             </div>
         </main>
-</div>
+    </div>
+     {/* Review Section */}
+      <section className="mt-12">
+        <ReviewSlider />
+      </section>
+    </>
+    
   );
 }

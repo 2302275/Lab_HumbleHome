@@ -69,6 +69,33 @@ def login():
     
     return jsonify({'token': token}), 200
 
+# Handles reviews data, create table reviews in sql beforehand
+@app.route('/reviews', methods=['GET'])
+def get_reviews():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM reviews ORDER BY rating DESC")
+    reviews = cursor.fetchall()
+    return jsonify(reviews), 200
+
+@app.route('/reviews', methods=['POST'])
+def add_review():
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    data = request.get_json()
+
+    cursor.execute(
+        "INSERT INTO reviews (name, text, rating) VALUES (%s, %s, %s)",
+        (data['name'], data['text'], data['rating'])
+    )
+    db.commit()
+
+    new_id = cursor.lastrowid
+    cursor.execute("SELECT * FROM reviews WHERE id = %s", (new_id,))
+    new_review = cursor.fetchone()
+
+    return jsonify(new_review), 201
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
