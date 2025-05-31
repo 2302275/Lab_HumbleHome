@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
+export default function Login({setUser}) {
     // Form Variables
     const [password, setPassword] = useState('');
     const [login, setLogin] = useState('');
@@ -18,11 +18,11 @@ function Login() {
         });
         const data = await response.json();
         
-        console.log(response);
         if (response.ok) {
+            setUser(data.user);
             localStorage.setItem('token', data.token);
             setMessage('Login successful');
-            navigate('/'); // ⬅️ Redirect to home
+            navigate('/'); 
         } else {
             setMessage(data.message);
         }
@@ -69,5 +69,3 @@ function Login() {
         </div>
     );
 }
-
-export default Login;

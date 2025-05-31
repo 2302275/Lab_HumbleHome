@@ -25,10 +25,19 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true 
-      - WATCHPACK_POLLING=true
-      - FAST_REFRESH=true
+    # environment:
+    #   - CHOKIDAR_USEPOLLING=true 
+    #   - WATCHPACK_POLLING=true
+    #   - FAST_REFRESH=true
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: package.json
     tty: true
 
   db:

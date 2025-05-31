@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect  } from 'react'
 import Header from "./components/Header";
 import ProductCard from "./components/ProductCard";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import ProductDetail from './pages/ProductDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
+
 
 const product = {
   name: '3D Printed Gear',
@@ -38,14 +40,42 @@ const products = [
 
 export default function App() {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [user, setUser] = useState(null);
+
+  const fetchProfile = async() => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const res = await fetch("http://localhost:5000/me", {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setUser(data.user);
+      console.log(data.user);
+    }else {
+      localStorage.removeItem('token');
+    }
+  };
+  
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   const filteredProducts = selectedCategory
     ? products.filter(p => p.tag === selectedCategory)
     : products;
+  
   return (
     <Router>
       <div className='w-full flex items-center flex-col bg-page min-h-screen'>
-        <Header />
+        <Header user={user} onLogout={() => {
+          localStorage.removeItem('token');
+          setUser(null);
+        }} />
         <div className="relative w-full h-72 bg-gray-200 flex items-center justify-center text-center">
           <h1 className="text-5xl font-light">HumbleHome</h1>
         </div>
@@ -88,7 +118,8 @@ export default function App() {
         } />
           <Route path="/product/:id" element={<ProductDetail products={products} />} />
           <Route path="/register" element={<Register/>} />
-          <Route path="/login" element={<Login/>} />
+          <Route path="/login" element={<Login setUser={setUser} />} />
+          <Route path="/profile" element={<Profile user={user} setUser={setUser} />} />
         </Routes>
       </div>
     </Router>
