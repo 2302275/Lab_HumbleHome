@@ -17,7 +17,6 @@ def allowed_file(filename):
 @profile_bp.route('/update-profile', methods=['PUT'])
 @token_req
 def updateProfile(current_user):
-    
     data = request.json
     fullname = data['fullname']
     phonenumber = data['phonenumber']
