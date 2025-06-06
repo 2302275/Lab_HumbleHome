@@ -18,6 +18,59 @@ USE `humblehome`;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `category`
+--
+
+DROP TABLE IF EXISTS `category`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `category` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `category_products`
+--
+
+DROP TABLE IF EXISTS `category_products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `category_products` (
+  `product_id` int NOT NULL,
+  `category_id` int NOT NULL,
+  PRIMARY KEY (`product_id`,`category_id`),
+  KEY `category_id` (`category_id`),
+  CONSTRAINT `category_products_ibfk_1` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `category_products_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `products`
+--
+
+DROP TABLE IF EXISTS `products`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `products` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `model_file` varchar(255) DEFAULT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `description` text,
+  `stock` int NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `status` varchar(255) DEFAULT 'active',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `users`
 --
 
@@ -41,16 +94,6 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'admin','admin@admin.com','scrypt:32768:8:1$kRYyAi09bvUMypij$d3976cd3f32cb3cfda64b50359645e1e8dfb403a5a6e53f68517046ea5f7d5d842f993fdbd24c69339af15fe8199f1cc80deb0c4d5e52485317a21fd0361596d','admin','Jordan','123456782','','2025-05-30 13:09:59','2025-05-31 10:47:38','ICT2112_Module_3_Diagrams_-_P3-2_Class_diagram_18.png'),(2,'testtest','testtest@test.com','scrypt:32768:8:1$UJ0Ekqabdd1VkQUa$ed3d85359f10a3bbe578c4c6dba101b6794417de1509653ebf3c0b8702bf55e3f2ed837599812a534d210084b802b1a63b2efd53186db37370f3811ba15d8ad8','customer',NULL,NULL,NULL,'2025-05-30 15:12:32','2025-05-30 15:12:32',NULL),(3,'ynowrok','testtestasss@s.com','scrypt:32768:8:1$4lDSpg9MIixoHxYI$470cbc2f372db795bab2944bc1a5b8da2e242ac16ad3d7436086fc4a0497cff25e226b0daca2f2959be0bc7ef2ff80f3c76df714184631547c69b8086421c013','customer',NULL,NULL,NULL,'2025-05-30 15:31:25','2025-05-30 15:31:25',NULL);
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -61,4 +104,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-05-31 18:56:47
+-- Dump completed on 2025-06-06 10:29:14

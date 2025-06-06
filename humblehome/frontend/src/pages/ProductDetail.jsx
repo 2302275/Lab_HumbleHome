@@ -7,7 +7,9 @@ export default function ProductDetail({ products }) {
   const product = products[parseInt(id)];
 
   if (!product) return <p>Product not found.</p>;
-
+    
+  
+  const productUrl = `http://localhost:5000${product.model_file}`;
   return (
     <div className="w-3/4 p-8 flex">
         <aside className="w-1/4 pr-8">
@@ -20,7 +22,7 @@ export default function ProductDetail({ products }) {
         <main className='flex w-5/6 px-8 py-4'>
             <div className="flex gap-6 flex-col w-full">
                 <div className="w-full h-[300px]">
-                    <STLViewer url={product.url} />
+                    <STLViewer url={productUrl} />
                 </div>
                 <div>
                     <h1 className="text-3xl font-bold mb-2">{product.name}</h1>

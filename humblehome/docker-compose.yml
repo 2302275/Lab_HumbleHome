@@ -9,6 +9,7 @@ services:
       - FLASK_ENV=development
     volumes:
       - ./backend/models:/app/models
+      - ./uploads:/app/uploads
     develop:
       watch:
         - action: sync
