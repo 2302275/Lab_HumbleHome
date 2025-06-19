@@ -12,6 +12,14 @@ function Register() {
 
     const handleRegister = async (e) => {
         e.preventDefault();
+        
+        //Username validation
+        const usernameError = validateUsername(username);
+        if (usernameError) {
+            setMessage({ text: usernameError, type: 'error' });
+            return;
+        }
+
         try {
                 const response = await fetch('http://localhost:5000/register', {
                     method: 'POST',
@@ -30,6 +38,7 @@ function Register() {
             console.error('Fetch error:', e);
             setMessage({ text: 'Could not connect to server.', type: 'error' });
         }
+        
     };
 
     return (
@@ -93,6 +102,19 @@ function Register() {
         </div>
     );
 }
+
+function validateUsername(username) {
+    const regex = /^[a-zA-Z0-9]+$/;
+    if (!username) {
+        return "Username is required.";
+    }
+    if (!regex.test(username)) {
+        return "Username can only contain letters and numbers.";
+        // should we perhaps phrase this differently? like "Username cannot contain special characters or spaces."
+    }
+    return ""; // No error
+}
+
 
 
 export default Register;

@@ -11,6 +11,15 @@ export default function Login({setUser}) {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+
+        // Validate username or email input
+        const validationError = validateUsernameOrEmail(login);
+        if (validationError) {
+            setMessage({ text: validationError, type: 'error' });
+        return;
+        }
+
+
         const response = await fetch('http://localhost:5000/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -69,3 +78,19 @@ export default function Login({setUser}) {
         </div>
     );
 }
+
+function validateUsernameOrEmail(input) {
+  const usernameRegex = /^[a-zA-Z0-9]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!input) {
+    return "Username or email is required.";
+  }
+
+  if (!usernameRegex.test(input) && !emailRegex.test(input)) {
+    return "Invalid Username or email.";
+  }
+
+  return ""; // Valid
+}
+
