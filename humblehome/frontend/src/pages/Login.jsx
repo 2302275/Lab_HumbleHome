@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Login({setUser}) {
+export default function Login({setUser, fetchProfile}) {
     // Form Variables
     const [password, setPassword] = useState('');
     const [login, setLogin] = useState('');
@@ -19,12 +19,13 @@ export default function Login({setUser}) {
         const data = await response.json();
         
         if (response.ok) {
-            setUser(data.user);
             localStorage.setItem('token', data.token);
-            setMessage('Login successful');
-            navigate('/'); 
+            setUser(data.user);
+            setMessage({ text: 'Login successful', type: 'success' });
+            await fetchProfile(); // <-- fetch user from backend
+            navigate("/");
         } else {
-            setMessage(data.message);
+            setMessage({ text: data.message, type: 'error' });
         }
     };
 
