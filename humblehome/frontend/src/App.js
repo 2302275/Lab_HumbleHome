@@ -33,7 +33,7 @@ export default function App() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/categories");
+      const response = await fetch("http://localhost:8888/api/categories");
       const data = await response.json();
       // console.log(data);
       setCategories(data);
@@ -47,7 +47,7 @@ export default function App() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:5000/me", {
+      const res = await fetch("http://localhost:8888/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
