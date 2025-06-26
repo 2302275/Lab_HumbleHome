@@ -33,7 +33,7 @@ export default function ProductDetail({ products }) {
             name: product.name,
             quantity: 1,
             price: parseFloat(product.price),
-            thumbnail: product.thumbnail, // adjust based on your field
+            thumbnail: product.thumbnail_image, // adjust based on your field
           },
         ];
       }

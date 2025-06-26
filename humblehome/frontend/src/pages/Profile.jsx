@@ -68,7 +68,7 @@ function Profile({ user, setUser }) {
     const data = await response.json();
     if (response.ok) {
       setImageUrl(`http://localhost:5000/profile-image/${data.filename}`);
-      setUser({ ...user, profile_image: data.filename });
+      setUser({ ...user, profile_pic: data.filename });
       console.log(data);
       alert("Image Uploaded!");
     } else {

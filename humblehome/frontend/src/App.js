@@ -8,6 +8,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
+import Cart from "./pages/Cart.jsx";
+import Payment from "./pages/Payment.jsx";
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -33,7 +35,7 @@ export default function App() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:8888/api/categories");
+      const response = await fetch("http://localhost:5000/api/categories");
       const data = await response.json();
       // console.log(data);
       setCategories(data);
@@ -47,7 +49,7 @@ export default function App() {
     if (!token) return;
 
     try {
-      const res = await fetch("http://localhost:8888/me", {
+      const res = await fetch("http://localhost:5000/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -108,7 +110,7 @@ export default function App() {
                                 }
                                 className={`text-left py-2 px-4 rounded shadow ${
                                   selectedCategory === category.name
-                                    ? "bg-primary font-bold text-page"
+                                    ? "bg-accent font-bold text-page"
                                     : "hover:bg-gray-100"
                                 }`}
                               >
@@ -149,6 +151,11 @@ export default function App() {
             path="/admin"
             element={<AdminDashboard user={user} setUser={setUser} />}
           />
+          <Route
+            path="/cart"
+            element={<Cart/>}
+          />
+          <Route path="/payment" element={<Payment />} />
         </Routes>
       </div>
     </Router>
