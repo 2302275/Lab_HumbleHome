@@ -11,17 +11,7 @@ export default function Login({setUser, fetchProfile}) {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         // Validate username or email input
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         const validationError = validateUsernameOrEmail(login);
         if (validationError) {
             setMessage({ text: validationError, type: 'error' });
@@ -103,13 +93,3 @@ function validateUsernameOrEmail(input) {
 
   return ""; // Valid
 }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes

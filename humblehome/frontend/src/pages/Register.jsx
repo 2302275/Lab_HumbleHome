@@ -11,35 +11,12 @@ function Register() {
 
     const handleRegister = async (e) => {
         e.preventDefault();
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-        
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
-=======
-
->>>>>>> Stashed changes
         //Username validation
         const usernameError = validateUsername(username);
         if (usernameError) {
             setMessage({ text: usernameError, type: 'error' });
             return;
         }
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         try {
                 const response = await fetch('http://localhost:5000/register', {
                     method: 'POST',
@@ -134,16 +111,5 @@ function validateUsername(username) {
     }
     return ""; // No error
 }
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
 
 export default Register;
