@@ -3,6 +3,7 @@ import os
 from werkzeug.utils import secure_filename
 from db import get_db
 from middleware import token_req
+from PIL import Image, UnidentifiedImageError
 
 profile_bp = Blueprint('profile', __name__)
 
@@ -44,6 +45,15 @@ def upload_pic(current_user):
         filename = secure_filename(f"{file.filename}")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
+    # File Validation (Backend)
+        try:
+            with Image.open(filepath) as img:
+                img.verify()  
+            
+        except (UnidentifiedImageError, ValueError, OSError):
+            os.remove(filepath)
+            return jsonify({'error': 'Invalid or corrupted image file'}), 400
+
         
         db = get_db()
         cursor = db.cursor()
