@@ -53,6 +53,28 @@ function Profile({ user, setUser }) {
   };
 
   const handleImageUpload = async () => {
+
+    // Check for file MIME type
+    if (!file) {
+      alert("Please select an image file to upload.");
+      // Should we add a red message text saying "Please select an image file to upload." or "No file selected"?
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
+    if (!allowedTypes.includes(file.type)) {
+      alert("Invalid file type. Please upload a JPEG, JPG or PNG image.");
+      // Should we add a red message text saying "Invalid file type. Please upload a JPEG, JPG or PNG image."?
+      return;
+    }
+
+    // Check for file size
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit (idk what the limit is so just anyhow bomb)
+      alert("Image must be smaller than 2MB.");
+      // Should we add a red message text saying "Image must be smaller than 2MB."?
+      return;
+    }
+
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("image", file);
@@ -153,10 +175,15 @@ function Profile({ user, setUser }) {
                 name="fullname"
                 onChange={handleChange}
               />
+              <label className="block text-sm font-medium text-gray-700">
+                Phone Number:
+              </label>
+              <small>(Format: 1234 5678)</small>
               <input
-                type="text"
+                type="tel"
                 name="phonenumber"
                 placeholder="Phone number"
+                pattern="[0-9]{4} [0-9]{4}"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 value={formData.phonenumber}
                 onChange={handleChange}
