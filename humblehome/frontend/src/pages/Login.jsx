@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { validateUsernameOrEmail } from '../components/validator'; // Import the validation function
 
 export default function Login({setUser, fetchProfile}) {
     // Form Variables
@@ -77,19 +78,4 @@ export default function Login({setUser, fetchProfile}) {
             </div>
         </div>
     );
-}
-
-function validateUsernameOrEmail(input) {
-  const usernameRegex = /^[a-zA-Z0-9]+$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!input) {
-    return "Username or email is required.";
-  }
-
-  if (!usernameRegex.test(input) && !emailRegex.test(input)) {
-    return "Invalid Username or email.";
-  }
-
-  return ""; // Valid
 }

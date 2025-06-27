@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { validateImageTypeAndSize } from "../components/validator"; // Import the validation function
 
 function Profile({ user, setUser }) {
   const [formData, setFormData] = useState({
@@ -55,22 +56,8 @@ function Profile({ user, setUser }) {
 
   const handleImageUpload = async () => {
 
-    // Check for file MIME type
-    if (!file) {
-      toast.error("Please select an image file to upload.");
-    }
-    
-    const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("Invalid file type. Please upload a JPEG, JPG or PNG image.");
-      return;
-    }
-
-    // Check for file size
-    if (file.size > 2 * 1024 * 1024) { // 2MB limit (idk what the limit is so just anyhow bomb)
-      alert("Image must be smaller than 2MB.");
-      // Should we add a red message text saying "Image must be smaller than 2MB."?
-      toast.error("Image must be smaller than 2MB.");
+    // Validate the file type and size
+    if (!validateImageTypeAndSize(file)) {
       return;
     }
 
@@ -92,6 +79,7 @@ function Profile({ user, setUser }) {
       setUser({ ...user, profile_pic: data.filename });
       console.log(data);
       alert("Image Uploaded!");
+      toast.success("Image uploaded successfully!");
     } else {
       alert(data.error || "failed to upload");
     }

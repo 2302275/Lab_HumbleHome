@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { validateUsername } from '../components/validator'; // Import the validation function
 
 function Register() {
     const [accepted, setAccepted] = useState(false);
@@ -98,18 +99,6 @@ function Register() {
             </div>
         </div>
     );
-}
-
-function validateUsername(username) {
-    const regex = /^[a-zA-Z0-9]+$/;
-    if (!username) {
-        return "Username is required.";
-    }
-    if (!regex.test(username)) {
-        return "Username can only contain letters and numbers.";
-        // should we perhaps phrase this differently? like "Username cannot contain special characters or spaces."
-    }
-    return ""; // No error
 }
 
 export default Register;
