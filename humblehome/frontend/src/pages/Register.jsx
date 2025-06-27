@@ -11,14 +11,21 @@ function Register() {
 
     const handleRegister = async (e) => {
         e.preventDefault();
+<<<<<<< Updated upstream
         
+=======
+
+>>>>>>> Stashed changes
         //Username validation
         const usernameError = validateUsername(username);
         if (usernameError) {
             setMessage({ text: usernameError, type: 'error' });
             return;
         }
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         try {
                 const response = await fetch('http://localhost:5000/register', {
                     method: 'POST',
@@ -114,6 +121,9 @@ function validateUsername(username) {
     return ""; // No error
 }
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 
 export default Register;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function Profile({ user, setUser }) {
   const [formData, setFormData] = useState({
@@ -53,25 +54,39 @@ function Profile({ user, setUser }) {
   };
 
   const handleImageUpload = async () => {
+<<<<<<< Updated upstream
 
     // Check for file MIME type
     if (!file) {
       alert("Please select an image file to upload.");
       // Should we add a red message text saying "Please select an image file to upload." or "No file selected"?
+=======
+    // Check for file MIME type
+    if (!file) {
+      toast.error("Please select an image file to upload.");
+>>>>>>> Stashed changes
       return;
     }
 
     const allowedTypes = ["image/jpeg", "image/jpg", "image/png"];
     if (!allowedTypes.includes(file.type)) {
+<<<<<<< Updated upstream
       alert("Invalid file type. Please upload a JPEG, JPG or PNG image.");
       // Should we add a red message text saying "Invalid file type. Please upload a JPEG, JPG or PNG image."?
+=======
+      toast.error("Invalid file type. Please upload a JPEG, JPG or PNG image.");
+>>>>>>> Stashed changes
       return;
     }
 
     // Check for file size
     if (file.size > 2 * 1024 * 1024) { // 2MB limit (idk what the limit is so just anyhow bomb)
+<<<<<<< Updated upstream
       alert("Image must be smaller than 2MB.");
       // Should we add a red message text saying "Image must be smaller than 2MB."?
+=======
+      toast.error("Image must be smaller than 2MB.");
+>>>>>>> Stashed changes
       return;
     }
 
