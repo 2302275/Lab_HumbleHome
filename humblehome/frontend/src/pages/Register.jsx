@@ -12,7 +12,11 @@ function Register() {
     const handleRegister = async (e) => {
         e.preventDefault();
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         
+=======
+
+>>>>>>> Stashed changes
 =======
 
 >>>>>>> Stashed changes
@@ -23,7 +27,10 @@ function Register() {
             return;
         }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         try {
@@ -122,7 +129,10 @@ function validateUsername(username) {
 }
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 

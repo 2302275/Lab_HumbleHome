@@ -13,7 +13,10 @@ export default function Login({setUser, fetchProfile}) {
         e.preventDefault();
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         // Validate username or email input
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
         const validationError = validateUsernameOrEmail(login);
@@ -98,6 +101,9 @@ function validateUsernameOrEmail(input) {
   return ""; // Valid
 }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
