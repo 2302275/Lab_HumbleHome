@@ -13,6 +13,23 @@ ALLOWED_EXTENSIONS = {'stl'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def is_valid_stl(file_stream):
+    try:
+        header = file_stream.read(6).decode('ascii', errors='ignore')
+        file_stream.seek(0)  
+    
+        if header.lower().startswith('solid'):
+            return True
+
+        if len(file_stream.read()) >= 84:
+            file_stream.seek(0)
+            return True
+            
+        return False
+    except:
+        return False
+    
+
 @products_bp.route('/uploads/images/<filename>')
 def serve_image_file(filename):
     return send_from_directory('uploads/images', filename)
@@ -51,6 +68,12 @@ def add_product(current_user):
     # Validate model file
     if model_file.filename == '' or not allowed_file(model_file.filename):
         return jsonify({"error": "Invalid or missing model file"}), 400
+    
+    # Check STL file content
+    if not is_valid_stl(model_file.stream):
+        return jsonify({"error": "Invalid STL file content"}), 400
+    
+    model_file.seek(0)  
     
     model_filename = secure_filename(model_file.filename)
     model_path = os.path.join(upload_models_folder, model_filename)
