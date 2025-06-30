@@ -7,8 +7,8 @@ def get_db():
     if 'db' not in g:
         g.db = mysql.connector.connect(
             host="db",
-            user="root",
-            password="secret",
+            user="webapp",
+            password="webapp_p@ssw0rd",
             database="humblehome"
         )
     return g.db
