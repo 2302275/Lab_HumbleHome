@@ -1,9 +1,9 @@
-import {useState} from "react";
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import STLViewer from "../STLViewer";
 import toast from "react-hot-toast";
 
-export default function ProductDetail({ products }) {
+export default function ProductDetail({ products, user }) {
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
@@ -68,12 +68,14 @@ export default function ProductDetail({ products }) {
             <p className="text-sm text-gray-600 mb-2">{product.brand}</p>
             <p className="text-lg font-semibold mb-4">{product.price}</p>
             <p className="mb-4">{product.description}</p>
-            <button
-              className="bg-indigo-600 text-white px-4 py-2 rounded"
-              onClick={addToCart}
-            >
-              Add to Cart
-            </button>
+            {user?.role === "customer" && (
+              <button
+                className="bg-indigo-600 text-white px-4 py-2 rounded"
+                onClick={addToCart}
+              >
+                Add to Cart
+              </button>
+            )}
           </div>
         </div>
       </main>

@@ -1,8 +1,44 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import SearchBar from "../components/SearchBar";
 
 const Header = ({ user, onLogout }) => {
   const [cartCount, setCartCount] = useState(0);
+  const [query, setQuery] = useState("");
+  const [typingTimeout, setTypingTimeout] = useState(null);
+  const [results, setResults] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (typingTimeout) clearTimeout(typingTimeout);
+
+    const timeout = setTimeout(() => {
+      if (query.trim() === "") {
+        setResults([]);
+        return;
+      }
+
+      const fetchResults = async () => {
+        try {
+          const res = await fetch(
+            `http://localhost:5000/api/search?q=${encodeURIComponent(query)}`
+          );
+          const data = await res.json();
+          setResults(data);
+        } catch (err) {
+          console.error("Search failed", err);
+        }
+      };
+
+      fetchResults();
+    }, 50); // Wait 300ms after typing stops
+
+    setTypingTimeout(timeout);
+
+    return () => clearTimeout(timeout);
+  }, [query, typingTimeout]);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -25,87 +61,51 @@ const Header = ({ user, onLogout }) => {
         <div className="text-xl font-bold text-accent">
           <a href="/">HumbleHome</a>
         </div>
-        <form className="flex w-1/2">
-          <div className="relative w-full">
-            <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-              <svg
-                className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 21 21"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M11.15 5.6h.01m3.337 1.913h.01m-6.979 0h.01M5.541 11h.01M15 15h2.706a1.957 1.957 0 0 0 1.883-1.325A9 9 0 1 0 2.043 11.89 9.1 9.1 0 0 0 7.2 19.1a8.62 8.62 0 0 0 3.769.9A2.013 2.013 0 0 0 13 18v-.857A2.034 2.034 0 0 1 15 15Z"
-                />
-              </svg>
-            </div>
-            <input
-              type="text"
-              className="bg-black-100 border text-gray-900 text-sm rounded-lg block w-full ps-10 p-2.5 dark:bg-white dark:placeholder-gray-400"
-              placeholder="Search..."
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="inline-flex items-center py-2.5 px-3 ms-2 text-sm font-medium text-white bg-accent rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-accent_focused dark:bg-accent dark:hover:bg-accent_focused dark:focus:ring-accent_focused"
-          >
-            <svg
-              className="w-4 h-4 me-2"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 20 20"
-            >
-              <path
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
-              />
-            </svg>
-            Search
-          </button>
+        <form className="flex w-1/2" onSubmit={(e) => e.preventDefault()}>
+          <SearchBar />
         </form>
         <div className="flex items-center gap-4">
           {user ? (
-            <>
-              {user.role === "admin" && (
+            user.role === "admin" ? (
+              // Admin view
+              <>
                 <Link to="/admin" className="font-bold text-red-600">
                   Admin Dashboard
                 </Link>
-              )}
-              <Link
-                to="/profile"
-                className="text-accent text-accent hover:underline"
-              >
-                {user.username}
-              </Link>
-              <button
-                onClick={onLogout}
-                className="text-accent hover:underline"
-              >
-                Logout
-              </button>
-              <button
-                onClick={() => (window.location.href = "/cart")} // or use navigate()
-                className="relative text-white bg-accent px-4 py-2 rounded hover:bg-accent_focused"
-              >
-                🛒 Cart
-                {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </>
+                <button
+                  onClick={onLogout}
+                  className="text-accent hover:underline"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              // Normal user view
+              <>
+                <Link to="/profile" className="text-accent hover:underline">
+                  {user.username}
+                </Link>
+                <button
+                  onClick={onLogout}
+                  className="text-accent hover:underline"
+                >
+                  Logout
+                </button>
+                <button
+                  onClick={() => navigate("/cart")}
+                  className="relative text-white bg-accent px-4 py-2 rounded hover:bg-accent_focused"
+                >
+                  🛒 Cart
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              </>
+            )
           ) : (
+            // Not logged in
             <>
               <Link to="/login" className="text-accent hover:underline">
                 Login

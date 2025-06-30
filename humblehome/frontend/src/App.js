@@ -3,6 +3,10 @@ import { Toaster } from "react-hot-toast";
 import Header from "./components/Header";
 import ProductCard from "./components/ProductCard";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import AdminRoute from "./components/AdminRoute";
+import UserRoute from "./components/UserRoute";
+
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -10,6 +14,7 @@ import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Cart from "./pages/Cart.jsx";
 import Payment from "./pages/Payment.jsx";
+import AdminLogin from "./pages/AdminLogin.jsx";
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -21,7 +26,9 @@ export default function App() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/products/active");
+        const response = await fetch(
+          "http://localhost:5000/api/products/active"
+        );
         const data = await response.json();
         // console.log(data);
         setProducts(data);
@@ -136,7 +143,7 @@ export default function App() {
           />
           <Route
             path="/product/:id"
-            element={<ProductDetail products={products} />}
+            element={<ProductDetail products={products} user={user} />}
           />
           <Route path="/register" element={<Register />} />
           <Route
@@ -144,18 +151,47 @@ export default function App() {
             element={<Login setUser={setUser} fetchProfile={fetchProfile} />}
           />
           <Route
-            path="/profile"
-            element={<Profile user={user} setUser={setUser} />}
-          />
-          <Route
             path="/admin"
-            element={<AdminDashboard user={user} setUser={setUser} />}
+            element={
+              <AdminRoute user={user}>
+                <AdminDashboard user={user} setUser={setUser} />
+              </AdminRoute>
+            }
           />
+          
           <Route
             path="/cart"
-            element={<Cart/>}
+            element={
+              <UserRoute user={user}>
+                <Cart />
+              </UserRoute>
+            }
           />
-          <Route path="/payment" element={<Payment />} />
+
+          <Route
+            path="/profile"
+            element={
+              <UserRoute user={user}>
+                <Profile user={user} setUser={setUser} />
+              </UserRoute>
+            }
+          />
+
+          <Route
+            path="/payment"
+            element={
+              <UserRoute user={user}>
+                <Payment />
+              </UserRoute>
+            }
+          />
+
+          <Route
+            path="/hhpanel"
+            element={
+              <AdminLogin setUser={setUser} fetchProfile={fetchProfile} />
+            }
+          />
         </Routes>
       </div>
     </Router>

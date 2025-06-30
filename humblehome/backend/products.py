@@ -298,3 +298,24 @@ def get_categories_with_count():
     """)
     categories = cursor.fetchall()
     return jsonify(categories), 200
+
+@products_bp.route('/api/search', methods = ['GET'])
+def search():
+    query = request.args.get('q', '').strip()
+    
+    if not query:
+        return jsonify([])
+    
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
+    try:
+        sql = "SELECT * FROM products WHERE name LIKE %s LIMIT 20"
+        cursor.execute(sql, (f"%{query}%",))
+        results = cursor.fetchall()
+        return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        db.close()

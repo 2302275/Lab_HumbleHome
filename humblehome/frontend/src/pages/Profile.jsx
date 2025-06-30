@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { validateImageTypeAndSize } from "../components/validator"; // Import the validation function
 
 function Profile({ user, setUser }) {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     fullname: "",
     phonenumber: "",
@@ -14,6 +15,15 @@ function Profile({ user, setUser }) {
   const [tab, setTab] = useState("profile");
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    // Redirect if no user or no token
+    if (!user || !token) {
+      toast.error("Please log in to access your profile.");
+      navigate("/login"); 
+      return;
+    }
+
     if (user) {
       setFormData({
         fullname: user.full_name || "",
@@ -23,7 +33,7 @@ function Profile({ user, setUser }) {
 
       setImageUrl(`http://localhost:5000/profile-image/${user.profile_pic}`);
     }
-  }, [user]);
+  }, [user, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -55,7 +65,6 @@ function Profile({ user, setUser }) {
   };
 
   const handleImageUpload = async () => {
-
     // Validate the file type and size
     if (!validateImageTypeAndSize(file)) {
       return;

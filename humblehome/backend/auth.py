@@ -19,7 +19,12 @@ def register():
     
     cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
     if cursor.fetchone():
-        return jsonify({'message': 'User already exists.'}), 400
+        return jsonify({'message': 'Email already registered.'}), 400
+    
+    # Check if username exists
+    cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+    if cursor.fetchone():
+        return jsonify({'message': 'Username already taken.'}), 400
     
     hashed_pw = generate_password_hash(password)
     cursor.execute("INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)", (username, email, hashed_pw))
@@ -34,12 +39,11 @@ def login():
     loginInput = formData['login']
     password = formData['password']
     
-    print(loginInput)
     cursor.execute("SELECT * FROM users WHERE email = %s OR username = %s", (loginInput, loginInput))
     user = cursor.fetchone()
     
     if not user or not check_password_hash(user['password_hash'], password):
-        return jsonify({'message': 'Invalid creds'}), 401
+        return jsonify({'message': 'Invalid credentials'}), 401
     
     token = jwt.encode(
         {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
@@ -47,7 +51,15 @@ def login():
         algorithm='HS256'
     )
     
-    return jsonify({'token': token}), 200
+    user_info = {
+        'id': user['user_id'],
+        'username': user['username'],
+        'email': user['email'],
+        'role': user.get('role', 'user'),
+        'profile_pic': user.get('profile_pic')
+    }
+    
+    return jsonify({'token': token, 'user': user_info}), 200
 
 @auth_bp.route('/logout')
 @token_req
