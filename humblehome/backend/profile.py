@@ -41,10 +41,20 @@ def upload_pic(current_user):
     if file.filename == '':
         return jsonify({'error': 'No file submitted'}), 400
     
+    # Check file size (3MB limit)
+    max_size = 3 * 1024 * 1024  # 3MB in bytes
+    file.seek(0, os.SEEK_END)  # Move cursor to end of file
+    file_length = file.tell()  # Get file size
+    file.seek(0)  # Reset cursor position
+    
+    if file_length > max_size:
+        return jsonify({'error': 'File size exceeds 3MB limit'}), 400
+    
     if file and allowed_file(file.filename):
         filename = secure_filename(f"{file.filename}")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
+        
     # File Validation (Backend)
         try:
             with Image.open(filepath) as img:
