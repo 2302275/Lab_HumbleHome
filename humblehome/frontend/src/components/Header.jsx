@@ -3,18 +3,21 @@ import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import SearchBar from "../components/SearchBar";
+import { useRef } from "react";
 
 const Header = ({ user, onLogout }) => {
   const [cartCount, setCartCount] = useState(0);
   const [query, setQuery] = useState("");
-  const [typingTimeout, setTypingTimeout] = useState(null);
   const [results, setResults] = useState([]);
   const navigate = useNavigate();
+  const typingTimeoutRef = useRef(null); // ✅ useRef, not state
 
   useEffect(() => {
-    if (typingTimeout) clearTimeout(typingTimeout);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
-    const timeout = setTimeout(() => {
+    typingTimeoutRef.current = setTimeout(() => {
       if (query.trim() === "") {
         setResults([]);
         return;
@@ -33,12 +36,12 @@ const Header = ({ user, onLogout }) => {
       };
 
       fetchResults();
-    }, 50); // Wait 300ms after typing stops
+    }, 300); // you probably meant 300ms, not 50
 
-    setTypingTimeout(timeout);
-
-    return () => clearTimeout(timeout);
-  }, [query, typingTimeout]);
+    return () => {
+      clearTimeout(typingTimeoutRef.current);
+    };
+  }, [query]);
 
   useEffect(() => {
     const updateCartCount = () => {

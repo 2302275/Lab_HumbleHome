@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import Header from "./components/Header";
 import ProductCard from "./components/ProductCard";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import AdminRoute from "./components/AdminRoute";
 import UserRoute from "./components/UserRoute";
@@ -84,7 +84,7 @@ export default function App() {
     : products;
 
   return (
-    <Router>
+    <>
       <Toaster position="top-right" reverseOrder={false} />
       <div className="w-full flex items-center flex-col bg-page min-h-screen">
         <Header
@@ -105,8 +105,8 @@ export default function App() {
                 <div className="w-full flex justify-center items-center">
                   <div className="w-5/6 px-8 py-4 flex">
                     <aside className="w-1/4 pr-8">
-                      <div class="max-w-sm rounded bg-white rounded overflow-hidden shadow-lg">
-                        <div class="px-6 py-4">
+                      <div className="max-w-sm rounded bg-white rounded overflow-hidden shadow-lg">
+                        <div className="px-6 py-4">
                           <h2 className="font-bold text-md mb-2">Categories</h2>
                           <div className="flex flex-col gap-2">
                             {categories.map((category) => (
@@ -194,6 +194,6 @@ export default function App() {
           />
         </Routes>
       </div>
-    </Router>
+    </>
   );
 }
