@@ -10,7 +10,7 @@ const Header = ({ user, onLogout }) => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const navigate = useNavigate();
-  const typingTimeoutRef = useRef(null); // ✅ useRef, not state
+  const typingTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (typingTimeoutRef.current) {
