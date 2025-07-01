@@ -25,6 +25,7 @@ const SearchBar = () => {
         try {
           const res = await fetch(`http://localhost:5000/api/search?q=${encodeURIComponent(query)}`);
           const data = await res.json();
+          console.log(data);
           setResults(data);
         } catch (err) {
           console.error("Search failed", err);

@@ -10,7 +10,7 @@ export default function ProductDetail({ products, user }) {
   });
 
   const { id } = useParams();
-  const product = products[parseInt(id)];
+  const product = products.find((p) => p.id === parseInt(id));
 
   const addToCart = () => {
     if (!product) return;

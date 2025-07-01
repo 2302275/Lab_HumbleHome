@@ -30,7 +30,7 @@ export default function App() {
           "http://localhost:5000/api/products/active"
         );
         const data = await response.json();
-        // console.log(data);
+        console.log(data);
         setProducts(data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -131,8 +131,8 @@ export default function App() {
                     <section className="w-3/4 grid grid-cols-3 gap-6">
                       {filteredProducts.map((product, index) => (
                         <ProductCard
-                          key={product.id}
-                          product={{ ...product, id: index }}
+                          key={product.index}
+                          product={{ ...product, id: product.id }}
                         />
                       ))}
                     </section>
