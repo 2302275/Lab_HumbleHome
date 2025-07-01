@@ -36,7 +36,7 @@ const Header = ({ user, onLogout }) => {
       };
 
       fetchResults();
-    }, 300); // you probably meant 300ms, not 50
+    }, 300);
 
     return () => {
       clearTimeout(typingTimeoutRef.current);
