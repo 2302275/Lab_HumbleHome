@@ -10,6 +10,7 @@ services:
     volumes:
       - ./backend/models:/app/models
       - ./uploads:/app/uploads
+      - ./var/log/humblehome:/app/logs
     develop:
       watch:
         - action: sync
