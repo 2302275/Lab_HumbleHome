@@ -63,18 +63,21 @@ function Register() {
             value={username}
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setUsername(e.target.value)}
+            required
           />
           <input
             type="email"
             placeholder="E-mail"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
           <input
             type="password"
             placeholder="Password"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <div className="flex items-center text-sm">
             <input
