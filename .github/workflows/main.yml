@@ -26,3 +26,24 @@ jobs:
       - name: Stop Docker Containers
         run: docker compose down 
         working-directory: humblehome
+
+
+  dependency-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "humblehome_main_branch"
+          path: "humblehome"
+          format: "HTML"
+          out: "dependency-check-report"
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dependency-Check-Report
+          path: dependency-check-report
