@@ -91,11 +91,23 @@ export default function App() {
 
   return (
     <>
-      <Toaster position="top-right" reverseOrder={false} />
       <div className="w-full flex items-center flex-col bg-page min-h-screen">
         <Header
           user={user}
-          onLogout={() => {
+          onLogout={async () => {
+            const token = localStorage.getItem("token");
+            if (token) {
+              try {
+                await fetch("http://localhost:5000/logout", {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                });
+              } catch (error) {
+                console.error("Logout error:", error);
+              }
+            }
             localStorage.removeItem("token");
             setUser(null);
           }}
