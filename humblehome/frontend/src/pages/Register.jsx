@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateUsername } from "../components/validator"; // Import the validation function
+import { validateEmail } from "../components/validator";
 import toast from "react-hot-toast";
 
 function Register() {
@@ -16,8 +17,13 @@ function Register() {
     e.preventDefault();
     //Username validation
     const usernameError = validateUsername(username);
+    const emailError = validateEmail(email);
     if (usernameError) {
       setMessage({ text: usernameError, type: "error" });
+      return;
+    }
+    if (emailError) {
+      setMessage({ text: emailError, type: "error" });
       return;
     }
     try {
