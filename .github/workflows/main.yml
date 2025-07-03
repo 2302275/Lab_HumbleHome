@@ -1,0 +1,26 @@
+name: Test Docker Compose
+
+on:
+  push:
+
+jobs:
+  test-react:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Docker Compose
+        run: |
+          docker-compose up --build -d
+          
+      - name: Wait for docker to start up
+        run: sleep 10
+
+      - name: Test Index Page
+        run: |
+          curl -s -o response.html http://localhost:3000/
+          grep "<title>React App</title>" response.html
+
+      - name: Stop Docker Containers
+        run: docker-compose down 
