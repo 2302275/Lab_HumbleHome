@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Cart from "./pages/Cart.jsx";
 import Payment from "./pages/Payment.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -149,6 +150,10 @@ export default function App() {
           <Route
             path="/login"
             element={<Login setUser={setUser} fetchProfile={fetchProfile} />}
+          />
+          <Route
+            path="/forgotpassword"
+            element={<ForgotPassword setUser={setUser} fetchProfile={fetchProfile} />}
           />
           <Route
             path="/admin"

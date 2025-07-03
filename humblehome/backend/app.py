@@ -20,7 +20,9 @@ def create_app():
     from profile import profile_bp
     from auth import auth_bp
     from products import products_bp
+    from resetpassword import bp
     
+    app.register_blueprint(bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)

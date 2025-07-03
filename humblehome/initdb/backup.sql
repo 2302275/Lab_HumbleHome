@@ -1,6 +1,6 @@
 CREATE DATABASE  IF NOT EXISTS `humblehome` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `humblehome`;
--- MySQL dump 10.13  Distrib 8.0.42, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: humblehome
 -- ------------------------------------------------------
@@ -195,6 +195,36 @@ LOCK TABLES `orders` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `password_reset_tokens`
+--
+
+DROP TABLE IF EXISTS `password_reset_tokens`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `password_reset_tokens` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `used` tinyint(1) DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `token` (`token`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `password_reset_tokens_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `password_reset_tokens`
+--
+
+LOCK TABLES `password_reset_tokens` WRITE;
+/*!40000 ALTER TABLE `password_reset_tokens` DISABLE KEYS */;
+/*!40000 ALTER TABLE `password_reset_tokens` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `product_images`
 --
 
@@ -311,7 +341,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -320,7 +350,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (4,'admin','admin@admin.com','scrypt:32768:8:1$clTQw3Yrv4apONTD$95a46f9cea5324be7b8e3d507f041e65858376e7e60d7760ada459cea7b02d7df474774b0fd35f9ee5f0b38c0ac463bdbe9d2e41a4926438cdbb85ca400b0bc0','admin',NULL,NULL,NULL,'2025-06-22 08:33:02','2025-06-22 08:33:19',NULL);
+INSERT INTO `users` VALUES (4,'admin','admin@admin.com','scrypt:32768:8:1$clTQw3Yrv4apONTD$95a46f9cea5324be7b8e3d507f041e65858376e7e60d7760ada459cea7b02d7df474774b0fd35f9ee5f0b38c0ac463bdbe9d2e41a4926438cdbb85ca400b0bc0','admin',NULL,NULL,NULL,'2025-06-22 08:33:02','2025-06-22 08:33:19',NULL),(5,'altius','altiuschua9@gmail.com','scrypt:32768:8:1$g11BAv0d14EiOijP$6da13c7cf51c0599c6338390457493c2b08a0acf8683623066931a174a43d298e6fc98291dbd23601b28f01eb31ff71a33ca4b62fe831dbfd6308489e702313c','customer',NULL,NULL,NULL,'2025-07-03 11:47:21','2025-07-03 11:47:21',NULL);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -333,4 +363,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-06-22 22:59:26
+-- Dump completed on 2025-07-03 19:51:49
