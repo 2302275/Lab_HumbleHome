@@ -17,6 +17,12 @@ def register():
     email = formData['email']
     password = formData['password']
     
+    if not username:
+        return jsonify({'message': 'Username is required.'}), 400
+    
+    if not email:
+        return jsonify({'message': 'Email is required.'}), 400
+    
     cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
     if cursor.fetchone():
         return jsonify({'message': 'Email already registered.'}), 400
