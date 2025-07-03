@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Cart from "./pages/Cart.jsx";
 import Payment from "./pages/Payment.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -22,6 +23,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -53,7 +55,10 @@ export default function App() {
 
   const fetchProfile = async () => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      setLoadingUser(false);
+      return;
+    }
 
     try {
       const res = await fetch("http://localhost:5000/me", {
@@ -65,12 +70,13 @@ export default function App() {
       const data = await res.json();
       if (res.ok) {
         setUser(data.user);
-        // console.log(data.user);
       } else {
         localStorage.removeItem("token");
       }
     } catch (err) {
       console.error("Profile fetch error:", err);
+    } finally {
+      setLoadingUser(false); // Always run this
     }
   };
 
@@ -151,19 +157,23 @@ export default function App() {
             element={<Login setUser={setUser} fetchProfile={fetchProfile} />}
           />
           <Route
+            path="/forgotpassword"
+            element={<ForgotPassword setUser={setUser} fetchProfile={fetchProfile} />}
+          />
+          <Route
             path="/admin"
             element={
-              <AdminRoute user={user}>
+              <AdminRoute user={user} loading={loadingUser} >
                 <AdminDashboard user={user} setUser={setUser} />
               </AdminRoute>
             }
           />
-          
+
           <Route
             path="/cart"
             element={
-              <UserRoute user={user}>
-                <Cart />
+              <UserRoute user={user} loading={loadingUser}>
+                <Cart user={user} />
               </UserRoute>
             }
           />
@@ -171,7 +181,7 @@ export default function App() {
           <Route
             path="/profile"
             element={
-              <UserRoute user={user}>
+              <UserRoute user={user} loading={loadingUser}>
                 <Profile user={user} setUser={setUser} />
               </UserRoute>
             }
@@ -180,8 +190,8 @@ export default function App() {
           <Route
             path="/payment"
             element={
-              <UserRoute user={user}>
-                <Payment />
+              <UserRoute user={user} loading={loadingUser}>
+                <Payment user={user} />
               </UserRoute>
             }
           />

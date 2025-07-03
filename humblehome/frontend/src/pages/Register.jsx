@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateUsername } from "../components/validator"; // Import the validation function
+import { validateEmail } from "../components/validator";
 import toast from "react-hot-toast";
 
 function Register() {
@@ -16,8 +17,13 @@ function Register() {
     e.preventDefault();
     //Username validation
     const usernameError = validateUsername(username);
+    const emailError = validateEmail(email);
     if (usernameError) {
       setMessage({ text: usernameError, type: "error" });
+      return;
+    }
+    if (emailError) {
+      setMessage({ text: emailError, type: "error" });
       return;
     }
     try {
@@ -63,18 +69,21 @@ function Register() {
             value={username}
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setUsername(e.target.value)}
+            required
           />
           <input
             type="email"
             placeholder="E-mail"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
           <input
             type="password"
             placeholder="Password"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <div className="flex items-center text-sm">
             <input

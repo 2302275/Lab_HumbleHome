@@ -27,6 +27,20 @@ export function validateUsernameOrEmail(input) {
   return ""; // Valid
 }
 
+export function validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!email) {
+        return "Email is required.";
+    }
+    
+    if (!emailRegex.test(email)) {
+        return "Please enter a valid email address.";
+    }
+    
+    return ""; 
+}
+
 // Still in development
 export function searchbar(input) {
   const searchRegex = /^[a-zA-Z0-9\s]+$/;

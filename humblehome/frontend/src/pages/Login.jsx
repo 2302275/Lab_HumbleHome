@@ -88,6 +88,11 @@ export default function Login({ setUser, fetchProfile }) {
             Create one
           </a>
         </p>
+        <p className="text-center text-sm mt-6">
+          <a href="/forgotpassword" className="text-black underline">
+            Forgot password?
+          </a>
+        </p>
       </div>
     </div>
   );
