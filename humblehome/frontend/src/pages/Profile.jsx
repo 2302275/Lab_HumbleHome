@@ -13,6 +13,27 @@ function Profile({ user, setUser }) {
   const [file, setFile] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [tab, setTab] = useState("profile");
+  const [purchaseHistory, setPurchaseHistory] = useState([]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      if (tab === "history" && user) {
+        try {
+          const res = await fetch(
+            `http://localhost:5000/api/purchase-history/${user.user_id}`
+          );
+          const data = await res.json();
+          console.log(data);
+          setPurchaseHistory(data);
+        } catch (error) {
+          console.error("Failed to fetch history:", error);
+          toast.error("Could not load purchase history.");
+        }
+      }
+    };
+
+    fetchHistory();
+  }, [tab, user]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -20,7 +41,7 @@ function Profile({ user, setUser }) {
     // Redirect if no user or no token
     if (!user || !token) {
       toast.error("Please log in to access your profile.");
-      navigate("/login"); 
+      navigate("/login");
       return;
     }
 
@@ -201,6 +222,58 @@ function Profile({ user, setUser }) {
               </button>
             </form>
           </>
+        )}
+
+        {tab === "history" && (
+          <div className="mt-4 space-y-6">
+            {purchaseHistory.length === 0 ? (
+              <p>No purchase history found.</p>
+            ) : (
+              purchaseHistory.map((order) => (
+                <div
+                  key={order.order_id}
+                  className="border rounded p-4 shadow-sm bg-gray-50"
+                >
+                  <div className="flex justify-between items-center border-b pb-2">
+                    <h4 className="font-semibold">Order #{order.order_id}</h4>
+                    <span className="text-sm text-gray-600">
+                      {new Date(order.order_date).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div className="mt-2 space-y-2">
+                    {order.items.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="text-sm text-gray-700 pl-2 border-l-2 border-orange-200"
+                      >
+                        <p>
+                          <strong>Product:</strong> {item.product_name}
+                        </p>
+                        <p>
+                          <strong>Quantity:</strong> {item.quantity}
+                        </p>
+                        <p>
+                          <strong>Price:</strong> $
+                          {Number(item.price_at_purchase).toFixed(2)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 text-sm text-gray-600">
+                    <span>
+                      <strong>Status:</strong> {order.status}
+                    </span>
+                    <span className="ml-4">
+                      <strong>Total:</strong> $
+                      {Number(order.total_amount).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         )}
       </div>
     </main>
