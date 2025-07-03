@@ -13,6 +13,7 @@ jobs:
       - name: Run Docker Compose
         run: |
           docker compose up --build -d
+        working-directory: humblehome
           
       - name: Wait for docker to start up
         run: sleep 10
