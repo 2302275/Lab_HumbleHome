@@ -12,7 +12,7 @@ jobs:
 
       - name: Run Docker Compose
         run: |
-          docker-compose up --build -d
+          docker compose up --build -d
           
       - name: Wait for docker to start up
         run: sleep 10
