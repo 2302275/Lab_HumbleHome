@@ -20,10 +20,13 @@ def create_app():
     from profile import profile_bp
     from auth import auth_bp
     from products import products_bp
+    from purchase import purchases_bp
     
     app.register_blueprint(profile_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)
+    app.register_blueprint(purchases_bp)
+    
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.teardown_appcontext(close_db)
     return app
