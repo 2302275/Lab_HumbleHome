@@ -4,7 +4,9 @@ from werkzeug.utils import secure_filename
 from db import get_db
 from middleware import token_req
 from PIL import Image, UnidentifiedImageError
+import logging
 
+logger = logging.getLogger('humblehome_logger')  # Custom logger
 profile_bp = Blueprint('profile', __name__)
 
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
@@ -23,13 +25,47 @@ def updateProfile(current_user):
     phonenumber = data['phonenumber']
     address = data['address']
     
-    db = get_db()
-    cursor = db.cursor()
+    # Normalize values for comparison (handle None vs empty string)
+    current_fullname = current_user.get('full_name') or ''
+    current_phonenumber = current_user.get('phone_number') or ''
+    current_address = current_user.get('address') or ''
     
-    cursor.execute("UPDATE users SET full_name = %s, phone_number = %s, address = %s WHERE user_id = %s", (fullname, phonenumber, address, current_user['user_id']))
-    db.commit()
+    # Check which fields have been updated before making database changes
+    updated_fields = []
+    update_values = []
+    update_columns = []
     
-    return jsonify({'message': 'Profile updated successfully'}), 200
+    if fullname != current_fullname:
+        updated_fields.append('full_name')
+        update_columns.append('full_name = %s')
+        update_values.append(fullname)
+    
+    if phonenumber != current_phonenumber:
+        updated_fields.append('phone_number')
+        update_columns.append('phone_number = %s')
+        update_values.append(phonenumber)
+    
+    if address != current_address:
+        updated_fields.append('address')
+        update_columns.append('address = %s')
+        update_values.append(address)
+
+    if updated_fields:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Only update the fields that actually changed
+        update_query = f"UPDATE users SET {', '.join(update_columns)} WHERE user_id = %s"
+        update_values.append(current_user['user_id'])
+        
+        cursor.execute(update_query, update_values)
+        db.commit()
+        
+        logger.info(f"User \"{current_user['username']}\" updated their profile successfully! -- Fields Updated: {', '.join(updated_fields)}") # Do I state the the database was updated?
+        return jsonify({'message': 'Profile updated successfully'}), 200
+    else:
+        logger.info(f'User "{current_user["username"]}" submitted profile update with no changes.')
+        return jsonify({'message': 'No changes detected'}), 200
 
 @profile_bp.route('/upload-profile-image', methods = ['POST'])
 @token_req
@@ -48,6 +84,7 @@ def upload_pic(current_user):
     file.seek(0)  # Reset cursor position
     
     if file_length > max_size:
+        logger.error(f"User \"{current_user['username']}\" attempted to upload a file larger than 3MB")
         return jsonify({'error': 'File size exceeds 3MB limit'}), 400
     
     if file and allowed_file(file.filename):
@@ -62,20 +99,23 @@ def upload_pic(current_user):
             
         except (UnidentifiedImageError, ValueError, OSError):
             os.remove(filepath)
+            logger.error(f"User \"{current_user['username']}\" uploaded an invalid or corrupted image (.JPEG, .JPG, .PNG) file")
             return jsonify({'error': 'Invalid or corrupted image file'}), 400
 
-        
         db = get_db()
         cursor = db.cursor()
         cursor.execute("UPDATE users SET profile_pic = %s WHERE user_id = %s", (filename, current_user['user_id']))
         db.commit()
+        logger.info(f"User \"{current_user['username']}\" uploaded a new profile image!")
         
         return jsonify({
             'message': 'Profile image uploaded successfully!',
             'filename': filename  # or whatever variable holds the filename
         }), 200
-    
-    return jsonify({'error': 'Image submitted is invalid'}), 200
+        
+    else:
+        logger.error(f"User \"{current_user['username']}\" upload failed: Invalid file type or Corrupted image file")
+        return jsonify({'error': 'Image submitted is invalid'}), 400
 
 @profile_bp.route('/profile-image/<filename>')
 def get_profile_image(filename):

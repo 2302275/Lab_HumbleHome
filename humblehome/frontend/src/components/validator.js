@@ -59,7 +59,7 @@ export function searchbar(input) {
 // Check for file MIME type
 export function validateImageTypeAndSize(file){
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    const maxSize = 2 * 1024 * 1024; // 2MB limit (idk what the limit is so just anyhow bomb)
+    const maxSize = 3 * 1024 * 1024; // 3MB limit (idk what the limit is so just anyhow bomb)
     
     if (!file) {
         toast.error("Please select an image file to upload.");
@@ -73,8 +73,8 @@ export function validateImageTypeAndSize(file){
     
     // Check for file size
     if (file.size > maxSize) {
-        alert("Image must be smaller than 2MB.");
-        toast.error("File size exceeds the maximum limit of 2MB.");
+        alert("Image must be smaller than 3MB.");
+        toast.error("File size exceeds the maximum limit of 3MB.");
         return false;
     }
     
