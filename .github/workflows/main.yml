@@ -24,4 +24,4 @@ jobs:
           grep "<title>React App</title>" response.html
 
       - name: Stop Docker Containers
-        run: docker-compose down 
+        run: docker compose down 
