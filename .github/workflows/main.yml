@@ -45,5 +45,5 @@ jobs:
       - name: Upload Report
         uses: actions/upload-artifact@v4
         with:
-        name: Dependency-Check-Report
-        path: dependency-check-report
+          name: Dependency-Check-Report
+          path: dependency-check-report
