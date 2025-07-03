@@ -48,8 +48,6 @@ export default function Payment({ user }) {
       payment_method: "card",
     };
 
-    console.log(formData);
-
     try {
       const res = await fetch("http://localhost:5000/api/checkout", {
         method: "POST",
@@ -70,7 +68,7 @@ export default function Payment({ user }) {
       window.dispatchEvent(new Event("cartUpdated"));
 
       setTimeout(() => {
-        navigate("/"); 
+        navigate("/");
       }, 1500);
     } catch (err) {
       console.error("Checkout error:", err);
