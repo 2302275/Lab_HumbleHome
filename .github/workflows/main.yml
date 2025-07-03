@@ -45,8 +45,8 @@ jobs:
       - name: Upload Report
         uses: actions/upload-artifact@v4
         with:
-        name: Dependency-Check-Report
-        path: dependency-check-report
+          name: Dependency-Check-Report
+          path: dependency-check-report
 
 
   sonarqube:
@@ -56,7 +56,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-          
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
