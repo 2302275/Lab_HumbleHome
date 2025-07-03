@@ -2,7 +2,9 @@ from flask import request, jsonify, current_app
 from functools import wraps
 import jwt
 from db import get_db
+import logging
 
+logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
 
 def token_req(f):
@@ -25,6 +27,7 @@ def token_req(f):
             cursor.execute("SELECT * FROM users WHERE email = %s", (data['email'],))
             current_user = cursor.fetchone()
             if not current_user:
+                logger.warning("User not found for given token")
                 return jsonify({'message':'User not found'}), 404
             
             return f(current_user, *args, **kwargs)

@@ -3,7 +3,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import jwt, datetime
 from db import get_db
 from middleware import token_req
+import logging
 
+logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
 auth_bp = Blueprint('auth', __name__)
 
@@ -35,6 +37,7 @@ def register():
     hashed_pw = generate_password_hash(password)
     cursor.execute("INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)", (username, email, hashed_pw))
     db.commit()
+    logger.info(f"New account has been registered with email: {email}")
     return jsonify({'message':'User registered successfully..'}), 201
 
 @auth_bp.route('/login', methods = ['POST'])
@@ -49,6 +52,7 @@ def login():
     user = cursor.fetchone()
     
     if not user or not check_password_hash(user['password_hash'], password):
+        logger.warning(f"Failed login for user {user['username']}") # might log the user email instead
         return jsonify({'message': 'Invalid credentials'}), 401
     
     token = jwt.encode(
@@ -64,12 +68,15 @@ def login():
         'role': user.get('role', 'user'),
         'profile_pic': user.get('profile_pic')
     }
-    
+
+    logger.info(f"User \"{user['username']}\" logged in successfully")
+
     return jsonify({'token': token, 'user': user_info}), 200
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 @token_req
-def logout():
+def logout(current_user):
+    logger.info(f"User \"{current_user['username']}\" logged out successfully")
     return jsonify({'message': 'Logged out successfully.'}), 200
 
 @auth_bp.route('/me', methods=['GET'])

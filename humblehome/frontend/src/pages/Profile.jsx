@@ -184,6 +184,9 @@ function Profile({ user, setUser }) {
             </button>
 
             <form className="space-y-4 mt-4" onSubmit={handleUpdate}>
+              <label className="block text-sm font-medium text-black">
+                Full Name:
+              </label>
               <input
                 type="text"
                 placeholder="Full Name"
@@ -192,7 +195,7 @@ function Profile({ user, setUser }) {
                 name="fullname"
                 onChange={handleChange}
               />
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-black">
                 Phone Number:
               </label>
               <small>(Format: 1234 5678)</small>
@@ -205,6 +208,9 @@ function Profile({ user, setUser }) {
                 value={formData.phonenumber}
                 onChange={handleChange}
               />
+              <label className="block text-sm font-medium text-black">
+                Address:
+              </label>
               <input
                 type="text"
                 name="address"

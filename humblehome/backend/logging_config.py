@@ -10,7 +10,6 @@ def setup_logging():
 
     logger = logging.getLogger('humblehome_logger')  # Custom logger
     logger.setLevel(logging.INFO)
-    logger.propagate = False  # Allow propagation to the root logger
 
     # File handler
     file_handler = logging.FileHandler(log_path, mode='a')
