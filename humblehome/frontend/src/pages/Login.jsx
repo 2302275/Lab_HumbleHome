@@ -28,18 +28,20 @@ export default function Login({ setUser, fetchProfile }) {
     });
     const data = await response.json();
 
-    if (response.ok) {
-      if (data.user.role === "admin") {
-        toast.error("Login Failed.");
-        return;
-      }
+    if (data.user_id) {
+      // if (data.user.role === "admin") {
+      //   toast.error("Login Failed.");
+      //   return;
+      // }
 
-      console.log(data);
-      localStorage.setItem("token", data.token);
-      setUser(data.user);
-      setMessage({ text: "Login successful", type: "success" });
-      await fetchProfile(); // <-- fetch user from backend
-      navigate("/");
+      navigate("/verify-otp", { state: { user_id: data.user_id } });
+
+      // console.log(data);
+      // localStorage.setItem("token", data.token);
+      // setUser(data.user);
+      // setMessage({ text: "Login successful", type: "success" });
+      // await fetchProfile(); // <-- fetch user from backend
+      // navigate("/");
     } else {
       setMessage({ text: data.message, type: "error" });
     }

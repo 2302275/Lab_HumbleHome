@@ -16,6 +16,8 @@ import Cart from "./pages/Cart.jsx";
 import Payment from "./pages/Payment.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
+import VerifyOtp from "./pages/VerifyOtp.jsx";
+
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -167,6 +169,10 @@ export default function App() {
           <Route
             path="/login"
             element={<Login setUser={setUser} fetchProfile={fetchProfile} />}
+          />
+          <Route
+            path="/verify-otp"
+            element={<VerifyOtp setUser={setUser} fetchProfile={fetchProfile} />}
           />
           <Route
             path="/forgotpassword"
