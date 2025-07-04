@@ -84,14 +84,21 @@ def login():
     formData = request.json
     loginInput = formData['login']
     password = formData['password']
+<<<<<<< Updated upstream
     ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
 
+=======
+    
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+    
+>>>>>>> Stashed changes
     cursor.execute("SELECT * FROM users WHERE email = %s OR username = %s", (loginInput, loginInput))
     user = cursor.fetchone()
 
     if not user or not check_password_hash(user['password_hash'], password):
         logger.warning(f"Failed login attempt for {loginInput}")
         return jsonify({'message': 'Invalid credentials'}), 401
+<<<<<<< Updated upstream
 
     stored_ip = user.get('last_ip')
     if stored_ip != ip:
@@ -125,6 +132,44 @@ def login():
 
         return jsonify({'token': token, 'user': user_info}), 200
 
+=======
+    
+    stored_ip = user.get('last_ip')
+    if stored_ip != ip:
+        # IP is new — trigger 2FA
+        otp_code = ''.join(secrets.choice('0123456789') for _ in range(6))
+        expires_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
+
+        cursor.execute(
+            "INSERT INTO two_factor_codes (user_id, otp_code, expires_at) VALUES (%s, %s, %s)",
+            (user['user_id'], otp_code, expires_at)
+        )
+        db.commit()
+
+        send_otp_email(user['email'], otp_code)
+        return jsonify({'message': 'OTP sent to email', 'user_id': user['user_id']}), 200
+    else:
+
+        # IP matches — skip 2FA
+        # token expires in 1 hour
+        token = jwt.encode(
+            {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+            secretkey,
+            algorithm='HS256'
+        )
+    
+        user_info = {
+            'id': user['user_id'],
+            'username': user['username'],
+            'email': user['email'],
+            'role': user.get('role', 'user'),
+            'profile_pic': user.get('profile_pic')
+        }
+
+        logger.info(f"User \"{user['username']}\" logged in successfully")
+
+        return jsonify({'token': token, 'user': user_info}), 200
+>>>>>>> Stashed changes
 
 @auth_bp.route('/logout', methods=['POST'])
 @token_req
@@ -174,7 +219,11 @@ def verify_otp():
     cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
     user = cursor.fetchone()
     token = jwt.encode(
+<<<<<<< Updated upstream
         {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+=======
+        {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1)},
+>>>>>>> Stashed changes
         secretkey,
         algorithm='HS256'
     )
@@ -186,8 +235,16 @@ def verify_otp():
         'role': user.get('role', 'user'),
         'profile_pic': user.get('profile_pic')
     }
+<<<<<<< Updated upstream
 
     cursor.execute("UPDATE users SET last_ip = %s WHERE user_id = %s", (request.remote_addr, user_id))
     db.commit()
 
     return jsonify({'token': token, 'user': user_info}), 200
+=======
+    
+    cursor.execute("UPDATE users SET last_ip = %s WHERE user_id = %s", (request.remote_addr, user_id))
+    db.commit()
+
+    return jsonify({'token': token, 'user': user_info}), 200
+>>>>>>> Stashed changes

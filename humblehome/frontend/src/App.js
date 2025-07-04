@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import Header from "./components/Header";
@@ -22,6 +23,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 
 export default function App() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -75,7 +77,11 @@ export default function App() {
       if (res.ok) {
         setUser(data.user);
       } else {
+        // Token is invalid or expired
         localStorage.removeItem("token");
+        setUser(null);
+        alert("Your session has expired. Please log in again.");
+        navigate("/login");
       }
     } catch (err) {
       console.error("Profile fetch error:", err);
