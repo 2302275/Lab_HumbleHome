@@ -49,11 +49,14 @@ def forgot_password():
     # 4. Send email
     reset_link = f"http://localhost:5000/reset-password?token={reset_token}"
     email_body = f"""
-    You requested a password reset. Please click the link below to reset your password:
+    You are receiving this message because you have requested a password reset on HumbleHome.
+    Please click the link below to reset your password:
     
     {reset_link}
     
-    This link will expire in 1 hour. If you didn't request this, please ignore this email.
+    This link will expire in 1 hour. If you did not request this, please ignore this email.
+    
+    HumbleHome Team
     """
     
     msg = MIMEText(email_body)
