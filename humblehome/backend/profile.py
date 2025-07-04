@@ -70,11 +70,21 @@ def updateProfile(current_user):
 @profile_bp.route('/upload-profile-image', methods = ['POST'])
 @token_req
 def upload_pic(current_user):
+    logger.info(f"User \"{current_user['username']}\" initiated profile image upload")
+    
     if 'image' not in request.files:
+        logger.error(f"User \"{current_user['username']}\" upload failed: No file is being uploaded")
         return jsonify({'error': 'No image part in req'}), 400
     
     file = request.files['image']
-    if file.filename == '':
+    
+    # Check if file is None or has no filename
+    if file is None:
+        logger.error(f"User \"{current_user['username']}\" upload failed: File is null")
+        return jsonify({'error': 'No file provided'}), 400
+        
+    if file.filename == '' or file.filename is None:
+        logger.error(f"User \"{current_user['username']}\" upload failed: No file submitted or empty filename")
         return jsonify({'error': 'No file submitted'}), 400
     
     # Check file size (3MB limit)
@@ -82,6 +92,11 @@ def upload_pic(current_user):
     file.seek(0, os.SEEK_END)  # Move cursor to end of file
     file_length = file.tell()  # Get file size
     file.seek(0)  # Reset cursor position
+    
+    # Check if file is completely empty (0 bytes)
+    if file_length == 0:
+        logger.error(f"User \"{current_user['username']}\" upload failed: File is empty (0 bytes)")
+        return jsonify({'error': 'File is empty'}), 400
     
     if file_length > max_size:
         logger.error(f"User \"{current_user['username']}\" attempted to upload a file larger than 3MB")
@@ -100,7 +115,7 @@ def upload_pic(current_user):
         except (UnidentifiedImageError, ValueError, OSError):
             os.remove(filepath)
             logger.error(f"User \"{current_user['username']}\" uploaded an invalid or corrupted image (.JPEG, .JPG, .PNG) file")
-            return jsonify({'error': 'Invalid or corrupted image file'}), 400
+            return jsonify({'error': 'Invalid or Corrupted Image file'}), 400
 
         db = get_db()
         cursor = db.cursor()
@@ -112,10 +127,6 @@ def upload_pic(current_user):
             'message': 'Profile image uploaded successfully!',
             'filename': filename  # or whatever variable holds the filename
         }), 200
-        
-    else:
-        logger.error(f"User \"{current_user['username']}\" upload failed: Invalid file type or Corrupted image file")
-        return jsonify({'error': 'Image submitted is invalid'}), 400
 
 @profile_bp.route('/profile-image/<filename>')
 def get_profile_image(filename):
