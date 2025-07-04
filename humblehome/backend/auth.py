@@ -5,7 +5,7 @@ from db import get_db
 from middleware import token_req
 import smtplib
 from email.mime.text import MIMEText
-import logging
+import logging, threading
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
@@ -106,7 +106,8 @@ def login():
         )
         db.commit()
 
-        send_otp_email(user['email'], otp_code)
+        # send_otp_email(user['email'], otp_code)
+        threading.Thread(target=send_otp_email, args=(user['email'], otp_code)).start()
         return jsonify({'message': 'OTP sent to email', 'user_id': user['user_id']}), 200
     else:
         # IP matches — skip 2FA
