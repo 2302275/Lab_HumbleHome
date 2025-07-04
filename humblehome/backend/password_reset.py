@@ -2,9 +2,9 @@ from flask import Blueprint,request, jsonify
 from db import get_db
 from werkzeug.security import generate_password_hash
 
-bp = Blueprint('password_reset', __name__)
+password_reset_bp = Blueprint('password_reset', __name__)
 
-@bp.route('/resetpassword', methods=['POST'])
+@password_reset_bp.route('/resetpassword', methods=['POST'])
 def reset_password():
     data = request.get_json()
     token = data.get('token')
@@ -35,7 +35,7 @@ def reset_password():
     # In production, hash the password properly!
     hashed_password = generate_password_hash(new_password)
     cursor.execute(
-        "UPDATE users SET password_hash = %s WHERE id = %s",
+        "UPDATE users SET password_hash = %s WHERE user_id = %s",
         (hashed_password, token_record['user_id'])
     )
     

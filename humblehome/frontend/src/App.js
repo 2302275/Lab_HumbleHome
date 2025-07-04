@@ -18,6 +18,7 @@ import AdminLogin from "./pages/AdminLogin.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import PasswordResetConfirmation from "./pages/ResetConfimation.jsx";
 import VerifyOtp from "./pages/VerifyOtp.jsx";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 
 export default function App() {
