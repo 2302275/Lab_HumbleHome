@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { validateUsername } from "../components/validator"; // Import the validation function
-import { validateEmail } from "../components/validator";
+import { validateUsername, validateEmail, validatePassword } from "../components/validator"; // Import the validation function
 import toast from "react-hot-toast";
 
 function Register() {
@@ -15,11 +14,27 @@ function Register() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    // Clear previous message to force re-render (flash effect)
+    setMessage({ text: "", type: "" });
+
     //Username validation
     const usernameError = validateUsername(username);
     const emailError = validateEmail(email);
     if (usernameError) {
       setMessage({ text: usernameError, type: "error" });
+      setTimeout(() => {
+        setMessage({ text: usernameError, type: "error" });
+      }, 10); // Short delay to force re-render
+      return;
+    }
+
+    // Password validation
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setTimeout(() => {
+        setMessage({ text: passwordError, type: "error" });
+      }, 10); // Short delay to force re-render
       return;
     }
     if (emailError) {
