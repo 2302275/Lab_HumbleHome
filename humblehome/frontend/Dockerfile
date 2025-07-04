@@ -19,11 +19,11 @@ EXPOSE 3000
 # Copy the rest of the application
 COPY . .
 
-# Change ownership of the application files to the www-data user
-RUN chown -R www-data:www-data /app
+# # Change ownership of the application files to the www-data user
+# RUN chown -R www-data:www-data /app
 
-# Switch to the www-data user
-USER www-data
+# # Switch to the www-data user
+# USER www-data
 
 # Run the application
 CMD ["npm", "start"]
