@@ -37,9 +37,16 @@ export default function VerifyOtp({ setUser, fetchProfile }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="Enter 6-digit code"
+            inputMode="numeric"
+            pattern="\d{6}"
+            maxLength={6}
+            minLength={6}
             value={otp}
-            onChange={(e) => setOtp(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (/^\d{0,6}$/.test(value)) setOtp(value);  // Allow only up to 6 digits
+            }}
+            placeholder="Enter 6-digit code"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
           <button

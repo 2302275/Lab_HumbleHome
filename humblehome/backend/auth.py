@@ -145,6 +145,10 @@ def verify_otp():
     user_id = data.get('user_id')
     input_otp = data.get('otp')
 
+    # intput_otp validation
+    if not re.fullmatch(r"\d{6}", str(input_otp)):
+        return jsonify({'message': 'Invalid OTP format'}), 400
+
     db = get_db()
     cursor = db.cursor(dictionary=True, buffered=True)
 
