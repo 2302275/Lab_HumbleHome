@@ -28,22 +28,21 @@ export default function Login({ setUser, fetchProfile }) {
     });
     const data = await response.json();
 
-    if (data.user_id) {
-      // if (data.user.role === "admin") {
-      //   toast.error("Login Failed.");
-      //   return;
-      // }
-
-      navigate("/verify-otp", { state: { user_id: data.user_id } });
-
-      // console.log(data);
-      // localStorage.setItem("token", data.token);
-      // setUser(data.user);
-      // setMessage({ text: "Login successful", type: "success" });
-      // await fetchProfile(); // <-- fetch user from backend
-      // navigate("/");
+    if (response.ok) {
+      if (data.token && data.user) {
+        // IP is trusted — direct login
+        localStorage.setItem("token", data.token);
+        setUser(data.user);
+        await fetchProfile();
+        navigate("/");
+      } else if (data.user_id) {
+        // IP is new — OTP triggered
+        navigate("/verify-otp", { state: { user_id: data.user_id } });
+      } else {
+        toast.error("Unexpected login response.");
+      }
     } else {
-      setMessage({ text: data.message, type: "error" });
+      toast.error(data.message || "Login failed");
     }
   };
 

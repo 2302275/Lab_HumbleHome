@@ -77,53 +77,54 @@ def register():
     logger.info(f"New account has been registered with email: {email}")
     return jsonify({'message':'User registered successfully..'}), 201
 
-@auth_bp.route('/login', methods = ['POST'])
+@auth_bp.route('/login', methods=['POST'])
 def login():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     formData = request.json
     loginInput = formData['login']
     password = formData['password']
-    
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+
     cursor.execute("SELECT * FROM users WHERE email = %s OR username = %s", (loginInput, loginInput))
     user = cursor.fetchone()
-    
+
     if not user or not check_password_hash(user['password_hash'], password):
-        logger.warning(f"Failed login for user \"{user['username']}\"") # might log the user email instead
+        logger.warning(f"Failed login attempt for {loginInput}")
         return jsonify({'message': 'Invalid credentials'}), 401
-    
-    # 1. Generate OTP
-    otp_code = ''.join(secrets.choice('0123456789') for _ in range(6))
-    expires_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
-    # 2. Store in DB
-    cursor.execute(
-        "INSERT INTO two_factor_codes (user_id, otp_code, expires_at) VALUES (%s, %s, %s)",
-        (user['user_id'], otp_code, expires_at)
-    )
-    db.commit()
+    stored_ip = user.get('last_ip')
+    if stored_ip != ip:
+        # IP is new — trigger 2FA
+        otp_code = ''.join(secrets.choice('0123456789') for _ in range(6))
+        expires_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
-    # 3. Send email
-    send_otp_email(user['email'], otp_code)
-    
-    # token expires in 1 hour
-    token = jwt.encode(
-        {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1)},
-        secretkey,
-        algorithm='HS256'
-    )
-    
-    user_info = {
-        'id': user['user_id'],
-        'username': user['username'],
-        'email': user['email'],
-        'role': user.get('role', 'user'),
-        'profile_pic': user.get('profile_pic')
-    }
+        cursor.execute(
+            "INSERT INTO two_factor_codes (user_id, otp_code, expires_at) VALUES (%s, %s, %s)",
+            (user['user_id'], otp_code, expires_at)
+        )
+        db.commit()
 
-    logger.info(f"User \"{user['username']}\" logged in successfully")
+        send_otp_email(user['email'], otp_code)
+        return jsonify({'message': 'OTP sent to email', 'user_id': user['user_id']}), 200
+    else:
+        # IP matches — skip 2FA
+        token = jwt.encode(
+            {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+            secretkey,
+            algorithm='HS256'
+        )
 
-    return jsonify({'token': token, 'user': user_info}), 200
+        user_info = {
+            'id': user['user_id'],
+            'username': user['username'],
+            'email': user['email'],
+            'role': user.get('role', 'user'),
+            'profile_pic': user.get('profile_pic')
+        }
+
+        return jsonify({'token': token, 'user': user_info}), 200
+
 
 @auth_bp.route('/logout', methods=['POST'])
 @token_req
@@ -135,3 +136,58 @@ def logout(current_user):
 @token_req
 def get_profile(current_user):
     return jsonify({'user':current_user}), 200
+
+@auth_bp.route('/verify-otp', methods=['POST'])
+def verify_otp():
+    data = request.get_json()
+    user_id = data.get('user_id')
+    input_otp = data.get('otp')
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True, buffered=True)
+
+    #Get latest unexpired code
+    cursor.execute(
+        "SELECT * FROM two_factor_codes WHERE user_id = %s AND is_used = 0 ORDER BY created_at DESC",
+        (user_id,)
+    )
+
+    record = cursor.fetchone()
+
+    if not record or datetime.datetime.now() > record['expires_at']:
+        return jsonify({'message': 'Invalid or expired OTP'}), 401
+
+    if record['otp_code'] != input_otp:
+        attempts = record['attempts_left'] - 1
+        cursor.execute("UPDATE two_factor_codes SET attempts_left = %s WHERE id = %s", (attempts, record['id']))
+        db.commit()
+
+        if attempts <= 0:
+            return jsonify({'message': 'Too many incorrect attempts'}), 403
+        return jsonify({'message': 'Incorrect OTP'}), 401
+
+    # Mark OTP used
+    cursor.execute("UPDATE two_factor_codes SET is_used = 1 WHERE id = %s", (record['id'],))
+    db.commit()
+
+    # Issue final JWT
+    cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+    token = jwt.encode(
+        {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
+        secretkey,
+        algorithm='HS256'
+    )
+
+    user_info = {
+        'id': user['user_id'],
+        'username': user['username'],
+        'email': user['email'],
+        'role': user.get('role', 'user'),
+        'profile_pic': user.get('profile_pic')
+    }
+
+    cursor.execute("UPDATE users SET last_ip = %s WHERE user_id = %s", (request.remote_addr, user_id))
+    db.commit()
+
+    return jsonify({'token': token, 'user': user_info}), 200
