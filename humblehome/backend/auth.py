@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-import jwt, datetime, secrets
+import jwt, datetime, re, secrets
 from db import get_db
 from middleware import token_req
 import smtplib
@@ -37,6 +37,11 @@ def send_otp_email(recipient_email, otp_code):
     except Exception as e:
         print(f"[Email Error] Failed to send 2FA code to {recipient_email}: {e}")
 
+def is_password_complex(password):
+    # At least 1 uppercase, 1 number, 1 special char, min 8 chars
+    pattern = r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};\'":\\|,.<>\/?]).{8,}$'
+    return re.fullmatch(pattern, password) is not None
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
     db = get_db()
@@ -62,6 +67,10 @@ def register():
     if cursor.fetchone():
         return jsonify({'message': 'Username already taken.'}), 400
     
+    # Validate password complexity
+    if not is_password_complex(password):
+        return jsonify({'message': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.'}), 400
+    
     hashed_pw = generate_password_hash(password)
     cursor.execute("INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)", (username, email, hashed_pw))
     db.commit()
@@ -80,7 +89,7 @@ def login():
     user = cursor.fetchone()
     
     if not user or not check_password_hash(user['password_hash'], password):
-        logger.warning(f"Failed login for user {user['username']}") # might log the user email instead
+        logger.warning(f"Failed login for user \"{user['username']}\"") # might log the user email instead
         return jsonify({'message': 'Invalid credentials'}), 401
     
     # 1. Generate OTP
@@ -94,16 +103,15 @@ def login():
     )
     db.commit()
 
-     # 3. Send email
+    # 3. Send email
     send_otp_email(user['email'], otp_code)
-
-    return jsonify({'message': 'OTP sent to email', 'user_id': user['user_id']}), 200
     
-    # token = jwt.encode(
-    #     {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-    #     secretkey,
-    #     algorithm='HS256'
-    # )
+    # token expires in 1 hour
+    token = jwt.encode(
+        {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=1)},
+        secretkey,
+        algorithm='HS256'
+    )
     
     user_info = {
         'id': user['user_id'],
@@ -127,55 +135,3 @@ def logout(current_user):
 @token_req
 def get_profile(current_user):
     return jsonify({'user':current_user}), 200
-
-@auth_bp.route('/verify-otp', methods=['POST'])
-def verify_otp():
-    data = request.get_json()
-    user_id = data.get('user_id')
-    input_otp = data.get('otp')
-
-    db = get_db()
-    cursor = db.cursor(dictionary=True, buffered=True)
-
-    #Get latest unexpired code
-    cursor.execute(
-        "SELECT * FROM two_factor_codes WHERE user_id = %s AND is_used = 0 ORDER BY created_at DESC",
-        (user_id,)
-    )
-
-    record = cursor.fetchone()
-
-    if not record or datetime.datetime.now() > record['expires_at']:
-        return jsonify({'message': 'Invalid or expired OTP'}), 401
-
-    if record['otp_code'] != input_otp:
-        attempts = record['attempts_left'] - 1
-        cursor.execute("UPDATE two_factor_codes SET attempts_left = %s WHERE id = %s", (attempts, record['id']))
-        db.commit()
-
-        if attempts <= 0:
-            return jsonify({'message': 'Too many incorrect attempts'}), 403
-        return jsonify({'message': 'Incorrect OTP'}), 401
-
-    # Mark OTP used
-    cursor.execute("UPDATE two_factor_codes SET is_used = 1 WHERE id = %s", (record['id'],))
-    db.commit()
-
-    # Issue final JWT
-    cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
-    user = cursor.fetchone()
-    token = jwt.encode(
-        {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-        secretkey,
-        algorithm='HS256'
-    )
-
-    user_info = {
-        'id': user['user_id'],
-        'username': user['username'],
-        'email': user['email'],
-        'role': user.get('role', 'user'),
-        'profile_pic': user.get('profile_pic')
-    }
-
-    return jsonify({'token': token, 'user': user_info}), 200
