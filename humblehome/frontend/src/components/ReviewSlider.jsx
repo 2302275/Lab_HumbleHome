@@ -29,19 +29,20 @@ import { useEffect, useState } from "react";
 
 const ReviewSlider = () => {
   const [ReviewData, setReviews] = useState([]);
+  const { id } = useParams();
 
   useEffect(() => {
-    fetch("http://localhost:5000/reviews") // Change URL if needed
-      .then(res => res.json())
-      .then(data => setReviews(data))
-      .catch(err => console.error("Error fetching reviews:", err));
-  }, []);
+      fetch(`http://localhost:5000/api/products/${id}/reviews?page=1&per_page=5`)
+        .then(res => res.json())
+        .then(data => setReviews(data.reviews))  
+        .catch(err => console.error("Error fetching reviews:", err));
+    }, [id]);
 
 
   const settings = {
     dots: true,
     arrows: false,
-    infinite: true,
+    infinite: ReviewData.length > 1,
     speed: 500,
     slidesToScroll: 1,
     autoplay: true,
@@ -49,19 +50,12 @@ const ReviewSlider = () => {
     cssEase: "linear",
     pauseOnHover: true,
     pauseOnFocus: true,
+    centerMode: ReviewData.length < 2,
+    centerPadding: "600px",
     responsive: [
-      {
-        breakpoint: 10000,
-        settings: { slidesToShow: 3, slidesToScroll: 1, infinite: true },
-      },
-      {
-        breakpoint: 1024,
-        settings: { slidesToShow: 2, slidesToScroll: 1, initialSlide: 2 },
-      },
-      {
-        breakpoint: 640,
-        settings: { slidesToShow: 1, slidesToScroll: 1 },
-      },
+      { breakpoint: 10000, settings: { slidesToShow: 3 } },
+      { breakpoint: 1024, settings: { slidesToShow: 2 } },
+      { breakpoint: 640, settings: { slidesToShow: 1 } },
     ],
   };
 
@@ -69,23 +63,24 @@ const ReviewSlider = () => {
     <div className="py-10 mb-10">
       <div className="container">
         {/* Header */}
-        <div className="text-center mb-10 max-w-[600px] mx-auto">
-          <p data-aos="fade-up" className="text-sm text-primary">
-            What our customers are saying
+        <div className="text-center mb-12 max-w-2xl mx-auto">
+          <p className="inline-block mb-3 text-sm font-semibold tracking-wider text-blue-600 uppercase">
+            Testimonials
           </p>
-          <h1 data-aos="fade-up" className="text-3xl font-bold">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
             Reviews
           </h1>
-          <p data-aos="fade-up" className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400">
             Lorem ipsum dolor sit amet consectetur, adipisicing elit. Sit asperiores modi.
           </p>
-            <Link
-                to="/reviews"
-                className="mb-1 text-middle hover:bg-accent_focused bg-accent text-page font-semibold py-2 px-4 rounded shadow inline-block"
-                >
-                View All Reviews
-                </Link>
+          <Link
+            to={`/product/${id}/reviews`}
+            className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-orange-500 hover:bg-orange-600 transition duration-300"
+          >
+            View All Reviews
+          </Link>
         </div>
+
 
         {/* Slider */}
         <div data-aos="zoom-in">
@@ -94,11 +89,11 @@ const ReviewSlider = () => {
             {ReviewData.map((data) => (
               <div key={data.id} className="my-6">
                 <div className="flex flex-col gap-4 shadow-lg py-8 px-6 mx-4 rounded-xl bg-sky-100 bg-primary/10 relative">
-                  <div className="mb-4">
+                  <div className="mb-2">
                     <img
-                    //   src={data.img}
+                      src={`http://localhost:5000/profile-image/${data.profile_pic}`}
                       alt={data.name}
-                      className="rounded-full w-20 h-20"
+                      className="rounded-full w-20 h-20 mx-auto"
                     />
                   </div>
                   <div className="flex flex-col items-center gap-4">
