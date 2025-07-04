@@ -37,6 +37,7 @@ export default function Login({ setUser, fetchProfile }) {
         navigate("/");
       } else if (data.user_id) {
         // IP is new — OTP triggered
+        sessionStorage.setItem("pending_2fa_user_id", data.user_id);
         navigate("/verify-otp", { state: { user_id: data.user_id } });
       } else {
         toast.error("Unexpected login response.");
