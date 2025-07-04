@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
-import jwt, datetime, secrets
+import jwt, datetime, re, secrets
 from db import get_db
 from middleware import token_req
 import smtplib
@@ -37,6 +37,11 @@ def send_otp_email(recipient_email, otp_code):
     except Exception as e:
         print(f"[Email Error] Failed to send 2FA code to {recipient_email}: {e}")
 
+def is_password_complex(password):
+    # At least 1 uppercase, 1 number, 1 special char, min 8 chars
+    pattern = r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};\'":\\|,.<>\/?]).{8,}$'
+    return re.fullmatch(pattern, password) is not None
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
     db = get_db()
@@ -61,6 +66,10 @@ def register():
     cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
     if cursor.fetchone():
         return jsonify({'message': 'Username already taken.'}), 400
+    
+    # Validate password complexity
+    if not is_password_complex(password):
+        return jsonify({'message': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.'}), 400
     
     hashed_pw = generate_password_hash(password)
     cursor.execute("INSERT INTO users (username, email, password_hash) VALUES (%s, %s, %s)", (username, email, hashed_pw))
