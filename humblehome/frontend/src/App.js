@@ -16,6 +16,7 @@ import Cart from "./pages/Cart.jsx";
 import Payment from "./pages/Payment.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
+import PasswordResetConfirmation from "./pages/ResetConfimation.jsx";
 import VerifyOtp from "./pages/VerifyOtp.jsx";
 
 
@@ -93,23 +94,11 @@ export default function App() {
 
   return (
     <>
+      <Toaster position="top-right" reverseOrder={false} />
       <div className="w-full flex items-center flex-col bg-page min-h-screen">
         <Header
           user={user}
-          onLogout={async () => {
-            const token = localStorage.getItem("token");
-            if (token) {
-              try {
-                await fetch("http://localhost:5000/logout", {
-                  method: "POST",
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                });
-              } catch (error) {
-                console.error("Logout error:", error);
-              }
-            }
+          onLogout={() => {
             localStorage.removeItem("token");
             setUser(null);
           }}
@@ -177,6 +166,14 @@ export default function App() {
           <Route
             path="/forgotpassword"
             element={<ForgotPassword setUser={setUser} fetchProfile={fetchProfile} />}
+          />
+          <Route 
+            path="/reset-password/confirm" 
+            element={<PasswordResetConfirmation />} 
+          />
+          <Route 
+          path="/reset-password" 
+          element={<ResetPasswordPage />} 
           />
           <Route
             path="/admin"
