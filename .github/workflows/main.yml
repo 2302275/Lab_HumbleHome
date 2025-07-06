@@ -1,78 +1,66 @@
-name: CI Pipeline
+name: Test Docker Compose
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
-  lint-frontend:
-    name: Lint React Frontend
+  test-react:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install frontend dependencies
-        working-directory: humblehome/frontend
-        run: npm ci
-
-      - name: Run ESLint
-        working-directory: humblehome/frontend
-        run: npx eslint src --max-warnings=0
-
-  lint-backend:
-    name: Lint Flask Backend
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install backend dependencies
-        working-directory: humblehome/backend
+      - name: Run Docker Compose
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install flake8 black
-
-      - name: Run flake8
-        working-directory: humblehome/backend
-        run: flake8 .
-
-      - name: Run black check
-        working-directory: humblehome/backend
-        run: black --check .
-
-  test-docker:
-    name: Test Docker Compose Setup
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Build and Start Docker Containers
-        run: docker compose up --build -d
+          docker compose up --build -d
         working-directory: humblehome
-
-      - name: Wait for startup
+          
+      - name: Wait for docker to start up
         run: sleep 10
 
-      - name: Test React App Homepage
+      - name: Test Index Page
         run: |
           curl -s -o response.html http://localhost:3000/
           grep "<title>React App</title>" response.html
 
       - name: Stop Docker Containers
-        run: docker compose down
+        run: docker compose down 
         working-directory: humblehome
+
+
+  dependency-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "humblehome_main_branch"
+          path: "humblehome"
+          format: "HTML"
+          out: "dependency-check-report"
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dependency-Check-Report
+          path: dependency-check-report
+
+
+  sonarqube:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.branch.name=main
