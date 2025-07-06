@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useRef } from "react";
 
 export const SessionTimeoutContext = createContext();
 
-export const SessionTimeoutProvider = ({ timeout = 10 * 1000, children }) => { // 15 minutes timeout
+export const SessionTimeoutProvider = ({ timeout = 15 * 60 * 1000, children }) => { // 15 minutes timeout
   const [isInactive, setIsInactive] = useState(false);
   const timerRef = useRef();
 
