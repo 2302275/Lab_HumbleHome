@@ -5,11 +5,15 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from "react-router-dom";
 
+import { SessionTimeoutProvider } from './components/SessionTimeoutContext.jsx';
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+  <SessionTimeoutProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </SessionTimeoutProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

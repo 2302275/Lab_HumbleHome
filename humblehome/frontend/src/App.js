@@ -21,6 +21,11 @@ import PasswordResetConfirmation from "./pages/ResetConfimation.jsx";
 import VerifyOtp from "./pages/VerifyOtp.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 
+import { useContext } from "react";
+import { SessionTimeoutContext } from "./components/SessionTimeoutContext.jsx";
+
+
+
 
 export default function App() {
   const navigate = useNavigate();
@@ -30,6 +35,10 @@ export default function App() {
 
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+
+  const { isInactive } = useContext(SessionTimeoutContext);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -94,6 +103,17 @@ export default function App() {
     fetchProfile();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (user && isInactive) {
+      setShowSessionModal(true);
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("pending_2fa_user_id");
+      setUser(null);
+    }
+  }, [isInactive, user]);
+
 
   const filteredProducts = selectedCategory
     ? products.filter((p) => p.category === selectedCategory)
@@ -225,6 +245,28 @@ export default function App() {
             }
           />
         </Routes>
+
+        {showSessionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white p-6 rounded-md shadow-md text-center max-w-sm">
+              <h2 className="text-lg font-semibold text-red-600 mb-2">
+                Session Expired
+              </h2>
+              <p className="text-sm text-gray-600 mb-4">
+                You were logged out for being inactive for 15 minutes. Please log in again.
+              </p>
+              <button
+                onClick={() => {
+                  setShowSessionModal(false);
+                  navigate("/login");
+                }}
+                className="bg-orange-500 hover:bg-orange-600 px-6 py-2 text-white rounded-md"
+              >
+                Log In Again
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
