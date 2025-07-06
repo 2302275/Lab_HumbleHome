@@ -7,7 +7,7 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
-    "plugin:security/recommended"
+    "plugin:security-node/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -20,11 +20,11 @@
   "plugins": [
     "react",
     "@typescript-eslint",
-    "security"
+    "security-node"
   ],
   "rules": {
     "no-console": "warn",
     "no-unused-vars": "warn",
-    "security/detect-eval-with-expression": "error"
+    "security-node/detect-eval-with-expression": "error"
   }
 }
