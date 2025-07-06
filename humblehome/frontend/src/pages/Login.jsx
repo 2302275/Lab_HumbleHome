@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateUsernameOrEmail } from "../components/validator"; // Import the validation function
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 export default function Login({ setUser, fetchProfile }) {
   // Form Variables
@@ -21,7 +22,7 @@ export default function Login({ setUser, fetchProfile }) {
       return;
     }
 
-    const response = await fetch("http://localhost:5000/login", {
+    const response = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login, password }),
@@ -84,8 +85,8 @@ export default function Login({ setUser, fetchProfile }) {
           </button>
         </form>
 
-        <p className="text-center text-sm mt-6">
-          Don't have an account?{" "}
+        <p className="text-center text-sm mt-6">`
+          Don&apos;t have an account?{" "}`
           <a href="/register" className="text-black underline">
             Create one
           </a>
@@ -99,3 +100,9 @@ export default function Login({ setUser, fetchProfile }) {
     </div>
   );
 }
+
+Login.propTypes = {
+  setUser: PropTypes.func.isRequired,
+  fetchProfile: PropTypes.func.isRequired,
+};
+

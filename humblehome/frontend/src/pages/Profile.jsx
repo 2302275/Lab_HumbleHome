@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { validateImageTypeAndSize } from "../components/validator"; // Import the validation function
+import PropTypes from "prop-types";
 
 function Profile({ user, setUser }) {
   const navigate = useNavigate();
@@ -19,9 +20,7 @@ function Profile({ user, setUser }) {
     const fetchHistory = async () => {
       if (tab === "history" && user) {
         try {
-          const res = await fetch(
-            `http://localhost:5000/api/purchase-history/${user.user_id}`
-          );
+          const res = await fetch(`/api/purchase-history/${user.user_id}`);
           const data = await res.json();
           console.log(data);
           setPurchaseHistory(data);
@@ -52,7 +51,7 @@ function Profile({ user, setUser }) {
         address: user.address || "",
       });
 
-      setImageUrl(`http://localhost:5000/profile-image/${user.profile_pic}`);
+      setImageUrl(`/profile-image/${user.profile_pic}`);
     }
   }, [user, navigate]);
 
@@ -64,7 +63,7 @@ function Profile({ user, setUser }) {
     e.preventDefault();
     const token = localStorage.getItem("token");
 
-    const res = await fetch("http://localhost:5000/update-profile", {
+    const res = await fetch("/api/update-profile", {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -95,7 +94,7 @@ function Profile({ user, setUser }) {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetch("http://localhost:5000/upload-profile-image", {
+    const response = await fetch("/api/upload-profile-image", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -105,7 +104,7 @@ function Profile({ user, setUser }) {
 
     const data = await response.json();
     if (response.ok) {
-      setImageUrl(`http://localhost:5000/profile-image/${data.filename}`);
+      setImageUrl(`/profile-image/${data.filename}`);
       setUser({ ...user, profile_pic: data.filename });
       console.log(data);
       alert("Image Uploaded!");
@@ -124,7 +123,7 @@ function Profile({ user, setUser }) {
           {imageUrl && (
             <div className="my-4 mr-2">
               <img
-                src={imageUrl}
+                src={`/api/${imageUrl}`}
                 alt="Profile"
                 className="h-32 w-32 object-cover rounded"
               />
@@ -286,4 +285,17 @@ function Profile({ user, setUser }) {
   );
 }
 
+Profile.propTypes = {
+  user: PropTypes.shape({
+    user_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    username: PropTypes.string,
+    email: PropTypes.string,
+    role: PropTypes.string,
+    full_name: PropTypes.string,
+    phone_number: PropTypes.string,
+    address: PropTypes.string,
+    profile_pic: PropTypes.string,
+  }),
+  setUser: PropTypes.func.isRequired,
+};
 export default Profile;
