@@ -53,7 +53,7 @@ jobs:
         working-directory: ./backend
         run: black --check .
 
-docker-build:
+  docker-build:  
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
