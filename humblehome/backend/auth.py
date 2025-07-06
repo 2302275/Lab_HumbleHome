@@ -95,7 +95,7 @@ def login():
         return jsonify({'message': 'Invalid credentials'}), 401
 
     stored_ip = user.get('last_ip')
-    if stored_ip != ip:
+    if stored_ip != ip and user['role'] != 'admin': # Skip 2FA for admin users
         # IP is new — trigger 2FA
         otp_code = ''.join(secrets.choice('0123456789') for _ in range(6))
         expires_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
@@ -106,7 +106,6 @@ def login():
         )
         db.commit()
 
-        # send_otp_email(user['email'], otp_code)
         threading.Thread(target=send_otp_email, args=(user['email'], otp_code)).start()
         return jsonify({'message': 'OTP sent to email', 'user_id': user['user_id']}), 200
     else:

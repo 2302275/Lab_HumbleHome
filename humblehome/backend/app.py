@@ -7,6 +7,7 @@ import os
 from logging_config import setup_logging
 import sys
 import signal
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 logger = setup_logging()
 
@@ -21,6 +22,7 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 
 def create_app():
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)  # Handles reverse proxy headers for Flask
     app.config['SECRET_KEY'] = 'supersecretkey'
     app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads', 'models')
 
