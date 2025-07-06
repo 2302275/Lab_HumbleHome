@@ -12,6 +12,10 @@ export default function VerifyOtp({ setUser, fetchProfile }) {
   const token = localStorage.getItem("token");
   const hasPending2FA = Boolean(user_id);
 
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+
   useEffect(() => {
     if (!hasPending2FA && !token) {
       toast.error("Access denied. Please log in first.");
@@ -49,6 +53,43 @@ export default function VerifyOtp({ setUser, fetchProfile }) {
       toast.error(data.message);
     }
   };
+
+  const handleResend = async () => {
+    setResending(true);
+    try {
+      const response = await fetch("http://localhost:5000/resend-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success("OTP resent to your email.");
+        setResendCooldown(30); // Cooldown in seconds
+      } else {
+        toast.error(data.message || "Failed to resend OTP.");
+      }
+    } catch (err) {
+      toast.error("Error resending OTP.");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  useEffect(() => {
+    let interval = null;
+    if (resendCooldown > 0) {
+      interval = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+    } else if (resendCooldown === 0) {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+
 
   if (!authorized) {
     return (
@@ -93,6 +134,14 @@ export default function VerifyOtp({ setUser, fetchProfile }) {
             className="w-full py-2 rounded-md text-white font-semibold transition bg-orange-500 hover:bg-orange-600"
           >
             Verify
+          </button>
+          <button
+            type="button"
+            onClick={handleResend}
+            disabled={resending || resendCooldown > 0}
+            className="w-full py-2 rounded-md font-semibold border border-orange-500 text-orange-500 hover:bg-orange-50 transition"
+          >
+            {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend OTP"}
           </button>
         </form>
       </div>

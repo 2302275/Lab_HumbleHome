@@ -197,3 +197,38 @@ def verify_otp():
     db.commit()
 
     return jsonify({'token': token, 'user': user_info}), 200
+
+@auth_bp.route('/resend-otp', methods=['POST', 'OPTIONS'])
+def resend_otp():
+    if request.method == 'OPTIONS':
+        return '', 204  # respond to preflight without processing
+    
+    data = request.get_json()
+    user_id = data.get('user_id')
+
+    if not user_id:
+        return jsonify({'message': 'Missing user ID'}), 400
+
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("SELECT email FROM users WHERE user_id = %s", (user_id,))
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    otp_code = ''.join(secrets.choice('0123456789') for _ in range(6))
+    expires_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
+
+    cursor.execute(
+        "INSERT INTO two_factor_codes (user_id, otp_code, expires_at) VALUES (%s, %s, %s)",
+        (user_id, otp_code, expires_at)
+    )
+    db.commit()
+
+    # Send OTP
+    threading.Thread(target=send_otp_email, args=(user['email'], otp_code)).start()
+
+    return jsonify({'message': 'OTP resent to your email'}), 200
+
