@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
+import PropTypes from "prop-types";
 
 const ProductCard = ({ product }) => (
   <Link to={`/product/${product.id}`} className="block">
     <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition">
       <div className="relative">
         <img
-          src={`http://localhost:5000/${product.thumbnail_image}`}
+          src={`/api/${product.thumbnail_image}`}
           alt={product.name}
           className="w-full h-64 object-cover mb-3 rounded"
         />
@@ -19,5 +20,17 @@ const ProductCard = ({ product }) => (
     </div>
   </Link>
 );
+
+
+ProductCard.propTypes = {
+  product: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    thumbnail_image: PropTypes.string.isRequired,
+    tag: PropTypes.string.isRequired,
+    brand: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  }).isRequired,
+};
 
 export default ProductCard;

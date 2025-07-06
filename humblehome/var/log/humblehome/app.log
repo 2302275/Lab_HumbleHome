@@ -138,3 +138,25 @@
 2025-07-04 15:35:37,297 INFO: create_app() called
 2025-07-04 15:35:40,168 INFO: create_app() called
 2025-07-04 15:35:43,682 INFO: create_app() called
+2025-07-06 13:03:17,047 INFO: create_app() called
+2025-07-06 13:03:17,613 INFO: create_app() called
+2025-07-06 13:42:12,940 INFO: create_app() called
+2025-07-06 13:42:13,966 INFO: create_app() called
+2025-07-06 13:43:26,710 INFO: create_app() called
+2025-07-06 13:43:27,394 INFO: create_app() called
+2025-07-06 13:45:20,200 INFO: create_app() called
+2025-07-06 13:45:20,679 INFO: create_app() called
+2025-07-06 14:01:36,967 INFO: create_app() called
+2025-07-06 14:01:37,536 INFO: create_app() called
+2025-07-06 14:03:56,970 INFO: create_app() called
+2025-07-06 14:03:57,505 INFO: create_app() called
+2025-07-06 14:06:39,569 INFO: create_app() called
+2025-07-06 14:06:40,132 INFO: create_app() called
+2025-07-06 14:09:26,134 INFO: create_app() called
+2025-07-06 14:09:26,691 INFO: create_app() called
+2025-07-06 14:14:03,892 INFO: create_app() called
+2025-07-06 14:14:04,492 INFO: create_app() called
+2025-07-06 14:17:39,173 INFO: New account has been registered with email: jordanchanxj@gmail.com
+2025-07-06 14:17:46,079 WARNING: Failed login attempt for jordan
+2025-07-06 14:18:23,119 INFO: User "Jordan" initiated profile image upload
+2025-07-06 14:18:23,143 INFO: User "Jordan" uploaded a new profile image!

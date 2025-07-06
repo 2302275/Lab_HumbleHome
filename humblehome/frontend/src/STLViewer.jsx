@@ -1,7 +1,13 @@
+/* eslint-disable react/no-unknown-property */
+
+import PropTypes from 'prop-types'
+
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import { useLoader } from '@react-three/fiber'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader'
+
+
 
 function STLModel({path}) {
     const geometry = useLoader(STLLoader, path)
@@ -10,6 +16,10 @@ function STLModel({path}) {
             <meshStandardMaterial color="orange"/>
         </mesh>
     )
+}
+
+STLModel.propTypes = {
+    path: PropTypes.string.isRequired,
 }
 
 export default function STLViewer({url}) {
@@ -21,4 +31,8 @@ export default function STLViewer({url}) {
             <OrbitControls/>
         </Canvas>
     )
+}
+
+STLViewer.propTypes = {
+    url: PropTypes.string.isRequired,
 }

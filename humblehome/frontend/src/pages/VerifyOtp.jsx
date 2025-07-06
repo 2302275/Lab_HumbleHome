@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 export default function VerifyOtp({ setUser, fetchProfile }) {
   const [otp, setOtp] = useState("");
@@ -34,7 +35,7 @@ export default function VerifyOtp({ setUser, fetchProfile }) {
       return;
     }
 
-    const response = await fetch("http://localhost:5000/verify-otp", {
+    const response = await fetch("/api/verify-otp", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ user_id, otp }),
@@ -148,3 +149,8 @@ export default function VerifyOtp({ setUser, fetchProfile }) {
     </div>
   );
 }
+
+VerifyOtp.propTypes = {
+  setUser: PropTypes.func.isRequired,
+  fetchProfile: PropTypes.func.isRequired,
+};

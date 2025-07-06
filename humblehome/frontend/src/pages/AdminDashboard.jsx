@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 function AdminDashboard({ user, setUser }) {
   const [products, setProducts] = useState([]);
@@ -92,7 +93,7 @@ function AdminDashboard({ user, setUser }) {
   const fetchCategoryStats = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/categories_with_count"
+        "/api/categories_with_count"
       );
       const data = await res.json();
       setCategoryStats(data);
@@ -174,7 +175,7 @@ function AdminDashboard({ user, setUser }) {
     // Send request
     try {
       const res = await fetch(
-        `http://localhost:5000/admin/api/update_product/${productId}`,
+        `/api/admin/api/update_product/${productId}`,
         {
           method: "PUT",
           headers: {
@@ -201,7 +202,7 @@ function AdminDashboard({ user, setUser }) {
   // Fetch all products for product management
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/products");
+      const response = await fetch("/api/products");
       const data = await response.json();
       console.log(data);
       setProducts(data);
@@ -213,7 +214,7 @@ function AdminDashboard({ user, setUser }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/categories");
+        const response = await fetch("/api/categories");
         const data = await response.json();
         // console.log(data);
         setCategories(data);
@@ -243,7 +244,7 @@ function AdminDashboard({ user, setUser }) {
       data.append("images", file);
     });
 
-    const res = await fetch("http://localhost:5000/admin/add_product", {
+    const res = await fetch("/api/admin/add_product", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -679,7 +680,7 @@ function AdminDashboard({ user, setUser }) {
                       onDrop={() => handleDrop(index)}
                     >
                       <img
-                        src={`http://localhost:5000/${image}`}
+                        src={`/api/${image}`}
                         alt={`Product-${index}`}
                         className="w-full h-full object-cover"
                       />
@@ -747,7 +748,7 @@ function AdminDashboard({ user, setUser }) {
                 e.preventDefault();
                 try {
                   const res = await fetch(
-                    "http://localhost:5000/admin/api/add_category",
+                    "/api/admin/api/add_category",
                     {
                       method: "POST",
                       headers: {
@@ -764,7 +765,7 @@ function AdminDashboard({ user, setUser }) {
                     setNewCategory("");
                     setShowAddCategoryModal(false);
                     const categoryRes = await fetch(
-                      "http://localhost:5000/api/categories"
+                      "/api/categories"
                     );
                     const categoryData = await categoryRes.json();
                     setCategories(categoryData);
@@ -799,4 +800,13 @@ function AdminDashboard({ user, setUser }) {
   );
 }
 
+AdminDashboard.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    username: PropTypes.string,
+    role: PropTypes.string
+  }).isRequired,
+
+  setUser: PropTypes.func.isRequired,
+}
 export default AdminDashboard;

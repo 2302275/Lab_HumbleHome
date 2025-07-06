@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 export default function Payment({ user }) {
   const [cart, setCart] = useState([]);
@@ -17,7 +18,7 @@ export default function Payment({ user }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log(user);
+    // console.log(user);
     const saved = localStorage.getItem("cart");
     setCart(saved ? JSON.parse(saved) : []);
   }, [user]);
@@ -49,7 +50,7 @@ export default function Payment({ user }) {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/checkout", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -204,4 +205,15 @@ export default function Payment({ user }) {
       </div>
     </div>
   );
+}
+
+
+Payment.propTypes = {
+  user: PropTypes.shape({
+    user_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    username: PropTypes.string,
+    role: PropTypes.string
+  }).isRequired,
+
+  setUser: PropTypes.func.isRequired,
 }

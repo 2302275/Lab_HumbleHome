@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 
 export const SessionTimeoutContext = createContext();
 
@@ -28,4 +29,9 @@ export const SessionTimeoutProvider = ({ timeout = 15 * 60 * 1000, children }) =
       {children}
     </SessionTimeoutContext.Provider>
   );
+};
+
+SessionTimeoutProvider.propTypes = {
+  timeout: PropTypes.number,
+  children: PropTypes.node.isRequired,
 };

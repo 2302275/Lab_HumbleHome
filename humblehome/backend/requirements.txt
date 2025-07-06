@@ -4,3 +4,5 @@ mysql-connector-python
 PyJWT
 Werkzeug
 pillow
+flake8
+black

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import STLViewer from "../STLViewer";
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 export default function ProductDetail({ products, user }) {
   const [cart, setCart] = useState(() => {
@@ -48,12 +49,12 @@ export default function ProductDetail({ products, user }) {
 
   if (!product) return <p>Product not found.</p>;
 
-  const productUrl = `http://localhost:5000/${product.model_file}`;
+  const productUrl = `/api/${product.model_file}`;
   return (
     <div className="w-3/4 p-8 flex">
       <aside className="w-1/4 pr-8">
         <Link to="/" className="text-blue-500 underline mb-4 block">
-          <button class="mb-1 text-left hover:bg-accent_focused bg-accent text-page font-semibold py-2 px-4 rounded shadow">
+          <button className="mb-1 text-left hover:bg-accent_focused bg-accent text-page font-semibold py-2 px-4 rounded shadow">
             ← View Other Products
           </button>
         </Link>
@@ -82,3 +83,21 @@ export default function ProductDetail({ products, user }) {
     </div>
   );
 }
+
+
+ProductDetail.propTypes = {
+  products: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      price: PropTypes.string.isRequired,
+      thumbnail_image: PropTypes.string.isRequired,
+      model_file: PropTypes.string.isRequired,
+      description: PropTypes.string,
+      brand: PropTypes.string,
+    })
+  ).isRequired,
+  user: PropTypes.shape({
+    role: PropTypes.string.isRequired,
+  }),
+};

@@ -20,7 +20,7 @@ export default function ForgotPassword() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/forgotpassword', {
+      const response = await fetch('/api/forgotpassword', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ export default function ForgotPassword() {
           <div className="text-center space-y-4">
             <p className="text-green-600">Password reset email sent! Please check your inbox.</p>
             <p className="text-sm">
-              Didn't receive the email? Check your spam folder or{" "}
+              Didn&apos;t receive the email? Check your spam folder or{" "}
               <button 
                 onClick={() => setEmailSent(false)}
                 className="text-orange-500 underline hover:text-orange-600"

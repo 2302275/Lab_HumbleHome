@@ -44,10 +44,9 @@ export default function App() {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          "http://localhost:5000/api/products/active"
+          "/api/products/active"
         );
         const data = await response.json();
-        console.log(data);
         setProducts(data);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -59,7 +58,7 @@ export default function App() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/categories");
+      const response = await fetch("/api/categories");
       const data = await response.json();
       // console.log(data);
       setCategories(data);
@@ -76,7 +75,7 @@ export default function App() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/me", {
+      const res = await fetch("/api/me", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -165,7 +164,7 @@ export default function App() {
                       </div>
                     </aside>
                     <section className="w-3/4 grid grid-cols-3 gap-6">
-                      {filteredProducts.map((product, index) => (
+                      {filteredProducts.map((product) => (
                         <ProductCard
                           key={product.index}
                           product={{ ...product, id: product.id }}

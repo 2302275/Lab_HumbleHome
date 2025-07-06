@@ -30,15 +30,15 @@ def is_valid_stl(file_stream):
         return False
     
 
-@products_bp.route('/uploads/images/<filename>')
+@products_bp.route('/api/uploads/images/<filename>')
 def serve_image_file(filename):
     return send_from_directory('uploads/images', filename)
 
-@products_bp.route('/uploads/models/<filename>')
+@products_bp.route('/api/uploads/models/<filename>')
 def serve_model_file(filename):
     return send_from_directory('uploads/models', filename)
 
-@products_bp.route('/admin/add_product', methods=['POST'])
+@products_bp.route('/api/admin/add_product', methods=['POST'])
 @token_req
 def add_product(current_user):
     db = get_db()
@@ -181,7 +181,7 @@ def get_categories():
     
     return jsonify(categories), 200    
 
-@products_bp.route('/admin/api/update_product/<int:product_id>', methods = ['PUT'])
+@products_bp.route('/api/admin/api/update_product/<int:product_id>', methods = ['PUT'])
 @token_req
 def update_product(current_user, product_id):
     db = get_db()
@@ -273,7 +273,7 @@ def update_product(current_user, product_id):
     db.commit()
     return jsonify({"message": "Product updated successfully"}), 200
 
-@products_bp.route('/admin/api/add_category', methods = ['POST'])
+@products_bp.route('/api/admin/api/add_category', methods = ['POST'])
 def add_category():
     db = get_db()
     cursor = db.cursor(dictionary=True)
