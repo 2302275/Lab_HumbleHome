@@ -22,9 +22,14 @@
     "@typescript-eslint",
     "security-node"
   ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "rules": {
     "no-console": "warn",
     "no-unused-vars": "warn",
-    "security-node/detect-eval-with-expression": "error"
+    "react/react-in-jsx-scope": "off"
   }
 }
