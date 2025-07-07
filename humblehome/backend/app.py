@@ -26,7 +26,7 @@ def create_app():
     app.config['SECRET_KEY'] = 'supersecretkey'
     app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads', 'models')
 
-    # setup_logging() # --> if called here, can see requests in the log file
+    # setup_logging() # --> if called here, can see HTTP requests in the log file
     logger.info("create_app() called")
     CORS(app, supports_credentials=True)
 

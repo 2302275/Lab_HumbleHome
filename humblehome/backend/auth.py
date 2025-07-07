@@ -34,8 +34,10 @@ def send_otp_email(recipient_email, otp_code):
             server.starttls()
             server.login(SMTP_USERNAME, SMTP_PASSWORD)
             server.send_message(msg)
+            logger.info(f"2FA code sent to {recipient_email} for login")
     except Exception as e:
-        print(f"[Email Error] Failed to send 2FA code to {recipient_email}: {e}")
+        print(f"[Email Error] Failed to send 2FA code to {recipient_email}: {e}") # in what circumstances would this happen?
+        logger.error(f"Failed to send 2FA code to {recipient_email}: {e}")
 
 def is_password_complex(password):
     # At least 1 uppercase, 1 number, 1 special char, min 8 chars
@@ -124,6 +126,8 @@ def login():
             'profile_pic': user.get('profile_pic')
         }
 
+        logger.info(f"User \"{user['username']}\" logged in successfully")
+        
         return jsonify({'token': token, 'user': user_info}), 200
 
 
@@ -152,10 +156,18 @@ def verify_otp():
     cursor = db.cursor(dictionary=True, buffered=True)
 
     #Get latest unexpired code
-    cursor.execute(
-        "SELECT * FROM two_factor_codes WHERE user_id = %s AND is_used = 0 ORDER BY created_at DESC",
-        (user_id,)
-    )
+    # cursor.execute(
+    #     "SELECT * FROM two_factor_codes WHERE user_id = %s AND is_used = 0 ORDER BY created_at DESC",
+    #     (user_id)
+    # )
+    
+    cursor.execute("""
+        SELECT two_factor_codes.*, users.username 
+        FROM two_factor_codes
+        JOIN users ON two_factor_codes.user_id = users.user_id
+        WHERE two_factor_codes.user_id = %s AND two_factor_codes.is_used = 0
+        ORDER BY two_factor_codes.created_at DESC
+    """, (user_id,))
 
     record = cursor.fetchone()
 
@@ -168,6 +180,7 @@ def verify_otp():
         db.commit()
 
         if attempts <= 0:
+            logger.warning(f"User \"{record['username']}\" has exceeded OTP attempts")
             return jsonify({'message': 'Too many incorrect attempts'}), 403
         return jsonify({'message': 'Incorrect OTP'}), 401
 
@@ -194,6 +207,8 @@ def verify_otp():
 
     cursor.execute("UPDATE users SET last_ip = %s WHERE user_id = %s", (request.remote_addr, user_id))
     db.commit()
+    
+    logger.info(f"User \"{user['username']}\" logged in successfully")
 
     return jsonify({'token': token, 'user': user_info}), 200
 
