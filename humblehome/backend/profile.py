@@ -96,13 +96,13 @@ def upload_pic(current_user):
     # Check if file is completely empty (0 bytes)
     if file_length == 0:
         logger.error(f"User \"{current_user['username']}\" upload failed: File is empty (0 bytes)")
-        return jsonify({'error': 'File is empty'}), 400
-    
+        return jsonify({'error': 'File is empty. Please re-upload another file.'}), 400
+
     if file_length > max_size:
         logger.error(f"User \"{current_user['username']}\" attempted to upload a file larger than 3MB")
-        return jsonify({'error': 'File size exceeds 3MB limit'}), 400
+        return jsonify({'error': 'File size exceeds the maximum limit of 3MB.'}), 400
     
-    if file and allowed_file(file.filename):
+    if allowed_file(file.filename):
         filename = secure_filename(f"{file.filename}")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
@@ -114,7 +114,7 @@ def upload_pic(current_user):
             
         except (UnidentifiedImageError, ValueError, OSError):
             os.remove(filepath)
-            logger.error(f"User \"{current_user['username']}\" uploaded an invalid or corrupted image (.JPEG, .JPG, .PNG) file")
+            logger.error(f"User \"{current_user['username']}\" attempted to upload an invalid or corrupted image (.JPEG, .JPG, .PNG) file")
             return jsonify({'error': 'Invalid or Corrupted Image file'}), 400
 
         db = get_db()
@@ -127,6 +127,9 @@ def upload_pic(current_user):
             'message': 'Profile image uploaded successfully!',
             'filename': filename  # or whatever variable holds the filename
         }), 200
+    else:
+        logger.error(f"User \"{current_user['username']}\" upload failed: Invalid file type -- {file.filename}")
+        return jsonify({'error': 'Invalid file type. Only .JPEG, .JPG, .PNG files are allowed.'}), 400
 
 @profile_bp.route('/api/profile-image/<filename>')
 def get_profile_image(filename):

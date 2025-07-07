@@ -86,31 +86,40 @@ function Profile({ user, setUser }) {
 
   const handleImageUpload = async () => {
     // Validate the file type and size
-    if (!validateImageTypeAndSize(file)) {
-      return;
-    }
+    // if (!validateImageTypeAndSize(file)) {
+    //   return;
+    // }
 
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetch("/api/upload-profile-image", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      setImageUrl(`/profile-image/${data.filename}`);
-      setUser({ ...user, profile_pic: data.filename });
-      console.log(data);
-      alert("Image Uploaded!");
-      toast.success("Image uploaded successfully!");
-    } else {
-      alert(data.error || "failed to upload");
+    try {
+      const response = await fetch("/api/upload-profile-image", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      
+      try {
+        const data = await response.json();
+        if (response.ok) {
+          setImageUrl(`/profile-image/${data.filename}`);
+          setUser({ ...user, profile_pic: data.filename });
+          console.log(data);
+          // alert("Image Uploaded!");
+          toast.success("Image uploaded successfully!");
+        } else {
+          // alert(data.error || "Failed to upload");
+          toast.error(data.error || "Failed to upload");
+        }
+      } catch (jsonError) {
+        toast.error("File size exceeds the maximum limit of 3MB.")
+      }
+    } catch (error) {
+      toast.error("Failed to upload image. Please try again.");
     }
   };
 
