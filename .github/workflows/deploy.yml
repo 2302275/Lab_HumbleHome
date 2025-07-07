@@ -10,24 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Upload source code to EC2
-      run: |
-        rsync -az -e "ssh -i ~/.ssh/id_rsa -p 22" ./ ${{ secrets.EC2_HOST }}:/home/ec2-user/app
+      - name: Upload source code to EC2
+        run: |
+        rsync -az -e "ssh -i ~/.ssh/id_rsa -p 22" ./ ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app
 
-    - name: Start Docker on EC2
-      run: |
-        ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_HOST }} << 'EOF'
-          cd /home/ec2-user/app
-          docker compose down
-          docker compose up -d --build
-        EOF
+      - name: Start Docker on EC2
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/${{ secrets.EC2_USER }}/app
+            docker compose down
+            docker compose up -d --build
+          EOF
