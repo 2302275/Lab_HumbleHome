@@ -84,9 +84,10 @@ def login():
     db = get_db()
     cursor = db.cursor(dictionary=True)
     formData = request.json
+
+    login_source = formData.get('login_source', 'user')  # default to 'user' if missing
     loginInput = formData['login']
     password = formData['password']
-    
     ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
 
     cursor.execute("SELECT * FROM users WHERE email = %s OR username = %s", (loginInput, loginInput))
@@ -95,6 +96,16 @@ def login():
     if not user or not check_password_hash(user['password_hash'], password):
         logger.warning(f"Failed login attempt for \"{loginInput}\"")
         return jsonify({'message': 'Invalid credentials'}), 401
+
+    # 🔒 1. Enforce admin access only from admin login page
+    if user['role'] == 'admin' and login_source != 'admin':
+        logger.warning(f"Blocked admin login from user portal for \"{user['email']}\"")
+        return jsonify({'message': 'Admins must log in via the admin portal.'}), 403
+
+    # 🔒 2. Enforce that regular users cannot use admin login page
+    if user['role'] != 'admin' and login_source == 'admin':
+        logger.warning(f"Blocked non-admin user \"{user['email']}\" from accessing admin portal")
+        return jsonify({'message': 'User is not an admin.'}), 403
 
     stored_ip = user.get('last_ip')
     if stored_ip != ip and user['role'] != 'admin': # Skip 2FA for admin users
@@ -127,7 +138,6 @@ def login():
         }
 
         logger.info(f"User \"{user['username']}\" logged in successfully")
-        
         return jsonify({'token': token, 'user': user_info}), 200
 
 
@@ -206,6 +216,7 @@ def verify_otp():
         'profile_pic': user.get('profile_pic')
     }
 
+    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
     cursor.execute("UPDATE users SET last_ip = %s WHERE user_id = %s", (request.remote_addr, user_id))
     db.commit()
     

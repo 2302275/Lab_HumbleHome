@@ -25,7 +25,7 @@ export default function Login({ setUser, fetchProfile }) {
     const response = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login, password }),
+      body: JSON.stringify({ login, password, login_source: "user" }),
     });
     const data = await response.json();
 
