@@ -93,7 +93,7 @@ def login():
     user = cursor.fetchone()
 
     if not user or not check_password_hash(user['password_hash'], password):
-        logger.warning(f"Failed login attempt for {loginInput}")
+        logger.warning(f"Failed login attempt for \"{loginInput}\"")
         return jsonify({'message': 'Invalid credentials'}), 401
 
     stored_ip = user.get('last_ip')
@@ -182,6 +182,7 @@ def verify_otp():
         if attempts <= 0:
             logger.warning(f"User \"{record['username']}\" has exceeded OTP attempts")
             return jsonify({'message': 'Too many incorrect attempts'}), 403
+        logger.warning(f"User \"{record['username']}\" entered incorrect OTP. Attempts left: {attempts}")
         return jsonify({'message': 'Incorrect OTP'}), 401
 
     # Mark OTP used
