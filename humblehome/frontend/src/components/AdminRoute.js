@@ -8,7 +8,7 @@ const AdminRoute = ({ user, loading, children }) => {
   }
 
   if (!user || user.role !== "admin") {
-    toast.error("Unauthorized access");
+    toast.error("Unauthorized accesss");
     return <Navigate to="/" replace />;
   }
   return children;
