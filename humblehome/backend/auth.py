@@ -224,7 +224,7 @@ def verify_otp():
 
     return jsonify({'token': token, 'user': user_info}), 200
 
-@auth_bp.route('/resend-otp', methods=['POST', 'OPTIONS'])
+@auth_bp.route('/api/resend-otp', methods=['POST', 'OPTIONS'])
 def resend_otp():
     if request.method == 'OPTIONS':
         return '', 204  # respond to preflight without processing

@@ -3,36 +3,58 @@ from functools import wraps
 from middleware import token_req
 from db import get_db
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import BadRequest
 import os
 import json
 
 purchases_bp = Blueprint('purchases', __name__)
 
+def is_valid_cart(cart):
+    if not isinstance(cart, list):
+        return False
+    for item in cart:
+        if not all(k in item for k in ["product_id", "quantity", "price"]):
+            return False
+        if not isinstance(item["product_id"], int) or item["product_id"] <= 0:
+            return False
+        if not isinstance(item["quantity"], int) or item["quantity"] <= 0:
+            return False
+        if not isinstance(item["price"], (int, float)) or item["price"] < 0:
+            return False
+    return True
+
 # TODO: Add to order_items & orders
-@purchases_bp.route('/api/checkout', methods = ['POST'])
+@purchases_bp.route('/api/checkout', methods=['POST'])
 def checkout():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
         customer_id = data.get("customer_id")
         cart = data.get("cart")
-        shipping_address = data.get('shipping_address')
+        shipping_address = data.get("shipping_address")
         payment_method = data.get("payment_method")
-        
-        if not customer_id or not cart or not shipping_address or not payment_method:
-            return jsonify({"error": "Missing required fields"}), 400
-        
+
+        # Input validation
+        if not isinstance(customer_id, int):
+            raise BadRequest("Invalid customer ID.")
+        if not is_valid_cart(cart):
+            raise BadRequest("Invalid cart format.")
+        if not isinstance(shipping_address, str) or not shipping_address.strip():
+            raise BadRequest("Invalid address.")
+        if payment_method not in ["card", "paypal"]:
+            raise BadRequest("Invalid payment method.")
+
         total_amount = sum(item['quantity'] * item['price'] for item in cart)
-        
+
         cursor.execute("""
             INSERT INTO orders (user_id, order_date, status, total_amount, shipping_address, payment_method)
             VALUES (%s, NOW(), %s, %s, %s, %s)
         """, (customer_id, "pending", total_amount, shipping_address, payment_method))
-        
+
         order_id = cursor.lastrowid
-        
+
         for item in cart:
             cursor.execute("""
                 INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase)
@@ -40,18 +62,19 @@ def checkout():
             """, (order_id, item["product_id"], item["quantity"], item["price"]))
 
         db.commit()
-    
+
         return jsonify({
             "message": "Order placed successfully",
             "order_id": order_id,
             "total_amount": total_amount
         }), 201
-        
+
+    except BadRequest as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         db.rollback()
-        # print("Checkout Error:", e)
         return jsonify({"error": "Something went wrong during checkout"}), 500
-        # return jsonify({"error": str(e), "data": data}), 500 <- Debug Line if needed
+
     
 @purchases_bp.route('/api/purchase-history/<int:user_id>', methods=['GET'])
 def get_purchase_history(user_id):
