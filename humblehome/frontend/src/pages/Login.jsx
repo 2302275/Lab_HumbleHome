@@ -85,8 +85,8 @@ export default function Login({ setUser, fetchProfile }) {
           </button>
         </form>
 
-        <p className="text-center text-sm mt-6">`
-          Don&apos;t have an account?{" "}`
+        <p className="text-center text-sm mt-6">
+          Don&apos;t have an account?{" "}
           <a href="/register" className="text-black underline">
             Create one
           </a>
