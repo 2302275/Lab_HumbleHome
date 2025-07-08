@@ -95,17 +95,17 @@ def login():
 
     if not user or not check_password_hash(user['password_hash'], password):
         logger.warning(f"Failed login attempt for \"{loginInput}\"")
-        return jsonify({'message': 'Invalid credentials'}), 401
+        return jsonify({'message': 'Invalid credentials.'}), 401
 
     # 🔒 1. Enforce admin access only from admin login page
     if user['role'] == 'admin' and login_source != 'admin':
         logger.warning(f"Blocked admin login from user portal for \"{user['email']}\"")
-        return jsonify({'message': 'Admins must log in via the admin portal.'}), 403
+        return jsonify({'message': 'Invalid Credentials.'}), 403
 
     # 🔒 2. Enforce that regular users cannot use admin login page
     if user['role'] != 'admin' and login_source == 'admin':
         logger.warning(f"Blocked non-admin user \"{user['email']}\" from accessing admin portal")
-        return jsonify({'message': 'User is not an admin.'}), 403
+        return jsonify({'message': 'Invalid credentials.'}), 403
 
     stored_ip = user.get('last_ip')
     if stored_ip != ip and user['role'] != 'admin': # Skip 2FA for admin users

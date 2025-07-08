@@ -5,7 +5,9 @@ from db import get_db
 from werkzeug.utils import secure_filename
 import os
 import json
+import logging
 
+logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
 products_bp = Blueprint('products', __name__)
 ALLOWED_EXTENSIONS = {'stl'}
@@ -89,6 +91,7 @@ def add_product(current_user):
         "INSERT INTO products (name, model_file, price, description, stock, thumbnail_image) VALUES (%s, %s, %s, %s, %s, %s)",
         (name, model_path, price, description, stock, thumbnail_path)
     )
+    logger.info(f"New Product added! -- \"{name}\" by user \"{current_user['username']}\"")
     product_id = cursor.lastrowid
     
     # Save product images
@@ -102,14 +105,16 @@ def add_product(current_user):
                 "INSERT INTO product_images (product_id, image_url, alt_text, sort_order) VALUES (%s, %s, %s, %s)",
                 (product_id, image_path, image.filename, i)
             )
-    
+            logger.info(f"Image {image_filename} uploaded for product \"{name}\" by user \"{current_user['username']}\".")
+
     cursor.execute("SELECT id from category WHERE name = %s", (category,))
     cat_id = cursor.fetchone()['id']
     if not cat_id:
         return jsonify({"error": "Invalid file format"}), 400   
     
     # Insert into category_products
-    cursor.execute("INSERT into category_products (product_id, category_id) VALUES (%s, %s)", (product_id, cat_id))  
+    cursor.execute("INSERT into category_products (product_id, category_id) VALUES (%s, %s)", (product_id, cat_id))
+    logger.info(f"Product \"{name}\" added to category \"{category}\" by user \"{current_user['username']}\". ")
     db.commit()
      
     return jsonify({
@@ -211,6 +216,7 @@ def update_product(current_user, product_id):
     if fields:
         values.append(product_id)
         cursor.execute(f"UPDATE products SET {', '.join(fields)} WHERE id = %s", values)
+        logger.info(f"Product \"{name}\" details updated by user \"{current_user['username']}\". -- Fields Updated: {', '.join(fields)}")
 
     # Category update
     if category:
@@ -221,6 +227,7 @@ def update_product(current_user, product_id):
         cat_id = cat['id']
         cursor.execute("DELETE FROM category_products WHERE product_id = %s", (product_id,))
         cursor.execute("INSERT INTO category_products (product_id, category_id) VALUES (%s, %s)", (product_id, cat_id))
+        logger.info(f"Product \"{name}\" updated to category \"{category}\" by user \"{current_user['username']}\".")
 
     if thumbnail:
         thumbnail_filename = f"thumb_{secure_filename(thumbnail.filename)}"
@@ -230,7 +237,8 @@ def update_product(current_user, product_id):
             "UPDATE products SET thumbnail_image = %s WHERE id = %s",
             (thumbnail_path, product_id)
         )
-    
+        logger.info(f"Thumbnail image updated for product \"{name}\" by user \"{current_user['username']}\".")
+
     if existing_images_order:
         try:
             existing_images_order = json.loads(existing_images_order)
@@ -244,6 +252,7 @@ def update_product(current_user, product_id):
         for img in current_images - set(existing_images_order):
             os.remove(os.path.join("uploads/images", os.path.basename(img)))
             cursor.execute("DELETE FROM product_images WHERE product_id = %s AND image_url = %s", (product_id, img))
+            logger.info(f"Image(s) {img} removed for product due to update \"{name}\" by user \"{current_user['username']}\".")
 
         # Update sort_order for remaining images
         for index, image_url in enumerate(existing_images_order):
@@ -251,6 +260,7 @@ def update_product(current_user, product_id):
                 UPDATE product_images SET sort_order = %s
                 WHERE product_id = %s AND image_url = %s
             """, (index, product_id, image_url))
+            logger.info(f"Image sort order updated for product \"{name}\" by user \"{current_user['username']}\".")
     
     
     cursor.execute("SELECT COALESCE(MAX(sort_order), 0) FROM product_images WHERE product_id = %s", (product_id,))
@@ -269,8 +279,10 @@ def update_product(current_user, product_id):
         """, (product_id, path, next_sort_order))
         
         next_sort_order += 1  # increment for next image
+        logger.info(f"New image {filename} added for product \"{name}\" by user \"{current_user['username']}\".")
 
     db.commit()
+    logger.info(f"Product \"{name}\" updated successfully by user \"{current_user['username']}\".")
     return jsonify({"message": "Product updated successfully"}), 200
 
 @products_bp.route('/api/admin/api/add_category', methods = ['POST'])
@@ -281,6 +293,7 @@ def add_category():
     cat_name = request.form.get('name')
     
     cursor.execute("INSERT INTO category (name) VALUES (%s)", (cat_name,))
+    logger.info(f"New Category added! -- \"{cat_name}\"")
     db.commit()
     return jsonify({"message": "Category added successfully"}), 200
 

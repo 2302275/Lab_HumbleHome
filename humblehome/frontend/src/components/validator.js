@@ -73,7 +73,7 @@ export function validateImageTypeAndSize(file){
     
     // Check for file size
     if (file.size > maxSize) {
-        alert("Image must be smaller than 3MB.");
+        // alert("Image must be smaller than 3MB.");
         toast.error("File size exceeds the maximum limit of 3MB.");
         return false;
     }
