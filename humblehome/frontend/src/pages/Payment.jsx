@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 
 
+
 // Input sanitization
 const sanitizeInput = (str) => str.replace(/[<>\/\\'"`]/g, "").trim();
 
@@ -67,6 +68,7 @@ export default function Payment({ user }) {
   };
 
   const handleSubmit = async (e) => {
+    const token = localStorage.getItem("token");
     e.preventDefault();
 
     // Sanitize inputs
@@ -97,7 +99,6 @@ export default function Payment({ user }) {
 
 
     const formData = {
-      customer_id: user.user_id,
       cart: cart.map(({ product_id, quantity, price }) => ({
         product_id,
         quantity,
@@ -112,6 +113,7 @@ export default function Payment({ user }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(formData),
       });

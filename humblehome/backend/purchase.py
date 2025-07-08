@@ -25,19 +25,20 @@ def is_valid_cart(cart):
 
 # TODO: Add to order_items & orders
 @purchases_bp.route('/api/checkout', methods=['POST'])
-def checkout():
+@token_req
+def checkout(current_user):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
     try:
         data = request.get_json(force=True)
-        customer_id = data.get("customer_id")
+        user_id = current_user["user_id"]
         cart = data.get("cart")
         shipping_address = data.get("shipping_address")
         payment_method = data.get("payment_method")
 
         # Input validation
-        if not isinstance(customer_id, int):
+        if not isinstance(user_id, int):
             raise BadRequest("Invalid customer ID.")
         if not is_valid_cart(cart):
             raise BadRequest("Invalid cart format.")
@@ -51,7 +52,7 @@ def checkout():
         cursor.execute("""
             INSERT INTO orders (user_id, order_date, status, total_amount, shipping_address, payment_method)
             VALUES (%s, NOW(), %s, %s, %s, %s)
-        """, (customer_id, "pending", total_amount, shipping_address, payment_method))
+        """, (user_id, "pending", total_amount, shipping_address, payment_method))
 
         order_id = cursor.lastrowid
 
@@ -76,8 +77,11 @@ def checkout():
         return jsonify({"error": "Something went wrong during checkout"}), 500
 
     
-@purchases_bp.route('/api/purchase-history/<int:user_id>', methods=['GET'])
-def get_purchase_history(user_id):
+@purchases_bp.route('/api/purchase-history', methods=['GET'])
+@token_req
+def get_purchase_history(current_user):
+    user_id = current_user["user_id"]
+
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
