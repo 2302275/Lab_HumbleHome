@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { validateImageTypeAndSize } from "../components/validator"; // Import the validation function
+import PaginationControls from "../components/PaginationControl";
 import PropTypes from "prop-types";
 
 function Profile({ user, setUser }) {
@@ -15,6 +16,10 @@ function Profile({ user, setUser }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [tab, setTab] = useState("profile");
   const [purchaseHistory, setPurchaseHistory] = useState([]);
+  const [myReviews, setMyReviews] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 3;
   const [enquiries, setEnquiries] = useState([]);
   const [replyInputs, setReplyInputs] = useState({});
 
@@ -168,8 +173,35 @@ const handlePasswordChange = async (e) => {
       }
     };
 
+    const fetchMyReviews = async () => {
+      if (tab === "myreviews") {
+        const token = localStorage.getItem("token");
+        try {
+          const res = await fetch(
+            `http://localhost:5000/my-reviews?page=${page}&per_page=${itemsPerPage}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const data = await res.json();
+          if (Array.isArray(data.reviews)) {
+            setMyReviews(data.reviews);
+            setTotalPages(data.total_pages || 1);
+          } else {
+            setMyReviews([]);
+            toast.error("Unexpected review data.");
+          }
+        } catch (error) {
+          toast.error("Failed to load your reviews.");
+        }
+      }
+    };
+
     fetchHistory();
-  }, [tab, user]);
+    fetchMyReviews();
+  }, [tab, user, page]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -260,6 +292,30 @@ const handlePasswordChange = async (e) => {
     }
   };
 
+  const handleDeleteReview = async (reviewId) => {
+    const token = localStorage.getItem("token");
+    if (!window.confirm("Are you sure you want to delete this review?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (res.ok) {
+        setMyReviews(myReviews.filter((review) => review.id !== reviewId));
+        toast.success("Review deleted successfully.");
+      } else {
+        const errorData = await res.json();
+        toast.error(errorData.error || "Failed to delete review.");
+      }
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      toast.error("An error occurred while deleting the review.");
+    }
+  };
+
   if (!user) return <p className="p-4">Loading...</p>;
 
   return (
@@ -321,6 +377,16 @@ const handlePasswordChange = async (e) => {
             onClick={() => setTab("security")}
           >
             Change Password
+          </button>
+          <button
+            className={`px-4 py-2 rounded-t font-semibold ${
+              tab === "myreviews"
+                ? "border-b-2 border-orange-500 text-orange-600"
+                : "text-gray-600 hover:text-orange-500"
+            }`}
+            onClick={() => setTab("myreviews")}
+          >
+            My Reviews
           </button>
         </div>
 
@@ -434,6 +500,48 @@ const handlePasswordChange = async (e) => {
                 </div>
               ))
             )}
+          </div>
+        )}
+
+        {tab === "myreviews" && (
+          <div className="space-y-4 mt-4">
+            {myReviews.length === 0 ? (
+              <p>No reviews yet.</p>
+            ) : (
+              myReviews.map((review) => (
+                <div
+                  key={review.id}
+                  className="border rounded p-4 shadow-sm bg-blue-50"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="font-semibold">{review.product_name}</h4>
+                      <p className="text-sm text-gray-600">
+                        {new Date(review.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteReview(review.id)}
+                      className="text-red-600 hover:underline text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                  <p className="text-yellow-500 text-sm">
+                    {"★".repeat(review.rating)}{" "}
+                    <span className="text-gray-300">
+                      {"★".repeat(5 - review.rating)}
+                    </span>
+                  </p>
+                  <p className="text-gray-800 mt-2">{review.text}</p>
+                </div>
+              ))
+            )}
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              onPageChange={(newPage) => setPage(newPage)}
+            />
           </div>
         )}
 

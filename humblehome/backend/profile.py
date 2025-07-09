@@ -182,3 +182,49 @@ def change_password(current_user):
     
     logger.info(f"User \"{current_user['username']}\" successfully changed their password")
     return jsonify({'message': 'Password changed successfully'}), 200
+
+@profile_bp.route('/my-reviews', methods=['GET'])
+@token_req
+def get_my_reviews(current_user):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        # Get pagination parameters
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 5))
+        offset = (page - 1) * per_page
+
+        # Get total reviews count
+        cursor.execute("""
+            SELECT COUNT(*) AS total_reviews
+            FROM reviews
+            WHERE user_id = %s
+        """, (current_user["user_id"],))
+        total_reviews = cursor.fetchone()['total_reviews']
+        total_pages = (total_reviews + per_page - 1) // per_page
+
+        # Get paginated reviews
+        cursor.execute("""
+            SELECT r.id, r.product_id, r.text, r.rating, r.created_at, p.name AS product_name
+            FROM reviews r
+            JOIN products p ON r.product_id = p.id
+            WHERE r.user_id = %s
+            ORDER BY r.created_at DESC
+            LIMIT %s OFFSET %s
+        """, (current_user["user_id"], per_page, offset))
+        reviews = cursor.fetchall()
+
+        return jsonify({
+            "reviews": reviews,
+            "page": page,
+            "per_page": per_page,
+            "total_reviews": total_reviews,
+            "total_pages": total_pages
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+

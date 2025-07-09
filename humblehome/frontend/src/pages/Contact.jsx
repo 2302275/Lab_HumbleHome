@@ -55,7 +55,7 @@ export default function Contact({ user }) {
       if (res.ok) {
         toast.success("Enquiry submitted successfully!");
         setForm({
-          name: user?.full_name || "",
+          name: user?.username || "",
           email: user?.email || "",
           subject: "",
           message: "",

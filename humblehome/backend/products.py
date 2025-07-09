@@ -332,6 +332,162 @@ def search():
     finally:
         cursor.close()
         db.close()
+
+@products_bp.route('/api/products/<int:product_id>/reviews', methods=['POST'])
+@token_req
+def add_product_review(current_user, product_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        rating = data.get('rating')
+        text = data.get('comment')  # Frontend still sends 'comment'
+        name = current_user.get('username')  # Get the user's name for insertion
+
+        # Validate rating
+        if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
+            return jsonify({"error": "Rating must be between 1 and 5"}), 400
+
+        # Check if user already reviewed this product
+        cursor.execute("""
+            SELECT id FROM reviews 
+            WHERE product_id = %s AND user_id = %s
+        """, (product_id, current_user['user_id']))
+
+        if cursor.fetchone():
+            return jsonify({"error": "You have already reviewed this product"}), 400
+
+        # Insert new review including `name`
+        cursor.execute("""
+            INSERT INTO reviews (product_id, user_id, rating, `text`, name) 
+            VALUES (%s, %s, %s, %s, %s)
+        """, (product_id, current_user['user_id'], rating, text, name))
+
+        db.commit()
+
+        return jsonify({
+            "message": "Review added successfully",
+            "review_id": cursor.lastrowid
+        }), 201
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+
+
+@products_bp.route('/api/products/<int:product_id>/reviews', methods=['GET'])
+def get_product_reviews(product_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        # Get pagination parameters from query string
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 6))  # Default to 5 reviews per page
+        offset = (page - 1) * per_page
+
+        # Sorting Options
+        sort_by = request.args.get('sort', 'date')  # default = date
+        order_clause = "ORDER BY r.created_at DESC"
+
+        if sort_by == 'rating':
+             order_clause = "ORDER BY r.rating DESC"
+
+        # Get reviews with user information
+        cursor.execute(f"""
+            SELECT r.id, r.rating, r.`text`, r.created_at, r.name, u.username, u.profile_pic 
+            FROM reviews r
+            JOIN users u ON r.user_id = u.user_id
+            WHERE r.product_id = %s
+            {order_clause}
+            LIMIT %s OFFSET %s
+        """, (product_id,per_page, offset))
+        reviews = cursor.fetchall()
+
+         # Get total number of reviews for pagination info
+        cursor.execute("""
+            SELECT COUNT(*) as total_reviews FROM reviews WHERE product_id = %s
+        """, (product_id,))
+        total_reviews = cursor.fetchone()['total_reviews']
+        total_pages = (total_reviews + per_page - 1) // per_page  # Calculate total pages
+
+        return jsonify({
+            "reviews": reviews,
+            "total_reviews": total_reviews,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+
+
+@products_bp.route('/api/products/<int:product_id>/reviews/stats', methods=['GET'])
+def get_review_stats(product_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        # Get review statistics
+        cursor.execute("""
+            SELECT 
+                COUNT(*) as total_reviews,
+                AVG(rating) as average_rating,
+                SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as five_star,
+                SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as four_star,
+                SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as three_star,
+                SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as two_star,
+                SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as one_star
+            FROM reviews
+            WHERE product_id = %s
+        """, (product_id,))
+
+        stats = cursor.fetchone()
+
+        if not stats['total_reviews']:
+            return jsonify({"error": "No reviews found for this product"}), 404
+
+        # Convert decimal to float for JSON serialization
+        stats['average_rating'] = float(stats['average_rating'])
+
+        return jsonify(stats), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+
+@products_bp.route('/api/reviews/<int:review_id>', methods=['DELETE'])
+@token_req
+def delete_review(current_user, review_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    try:
+        cursor.execute("SELECT user_id FROM reviews WHERE id = %s", (review_id,))
+        review = cursor.fetchone()
+        if not review:
+            return jsonify({"error": "Review not found"}), 404
+
+        if review["user_id"] != current_user["user_id"]:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        cursor.execute("DELETE FROM reviews WHERE id = %s", (review_id,))
+        db.commit()
+
+        return jsonify({"message": "Review deleted"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+
         
 @products_bp.route("/api/products/<int:product_id>", methods=["GET"])
 def fetch_product(product_id):
@@ -339,7 +495,12 @@ def fetch_product(product_id):
     cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT * FROM products WHERE id = %s AND status = 'active'", (product_id,))
     product = cursor.fetchone()
+    
+    cursor.execute("SELECT image_url FROM product_images WHERE product_id = %s", (product_id,))
+    images = cursor.fetchall()  # [{'image_url': 'path1'}, {'image_url': 'path2'}, ...]
 
+    product['images'] = [img['image_url'] for img in images]
+    
     if not product:
         return jsonify({"error": "Product not found or is inactive."}), 404
     
