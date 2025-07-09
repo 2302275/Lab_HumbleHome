@@ -370,7 +370,7 @@ const handlePasswordChange = async (e) => {
           </button>
           <button
             className={`px-4 py-2 rounded-t font-semibold ${
-              tab === "enquiries"
+              tab === "security"
                 ? "border-b-2 border-orange-500 text-orange-600"
                 : "text-gray-600 hover:text-orange-500"
             }`}

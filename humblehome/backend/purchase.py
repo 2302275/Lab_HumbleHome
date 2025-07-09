@@ -176,7 +176,7 @@ def get_user_enquiries(current_user):
     enquiries = cursor.fetchall()
 
     for enquiry in enquiries:
-       cursor.execute(
+        cursor.execute(
             """
             SELECT * FROM enquiry_message 
             WHERE enquiry_id = %s 
@@ -185,7 +185,7 @@ def get_user_enquiries(current_user):
             """,
             (enquiry["enquiry_id"], enquiry["message"])
         )
-    enquiry["messages"] = cursor.fetchall()
+        enquiry["messages"] = cursor.fetchall()  # <- move this inside loop
 
     return jsonify(enquiries), 200
 

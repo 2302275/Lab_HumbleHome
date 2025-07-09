@@ -237,7 +237,7 @@ export default function ProductDetail({ user }) {
                       <button
                         className={`px-4 py-2 rounded text-white block ${
                           product.stock > 0
-                            ? "bg-indigo-600 hover:bg-indigo-700"
+                            ? "bg-accent 0 hover:bg-accent_focused"
                             : "bg-gray-400 cursor-not-allowed"
                         }`}
                         onClick={addToCart}

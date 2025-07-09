@@ -17,7 +17,7 @@ import Cart from "./pages/Cart.jsx";
 import Payment from "./pages/Payment.jsx";
 import AdminLogin from "./pages/AdminLogin.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
-import ListOfReviews from "./pages/ListOfReviews.jsx";
+// import ListOfReviews from "./pages/ListOfReviews.jsx";
 import PasswordResetConfirmation from "./pages/ResetConfimation.jsx";
 import VerifyOtp from "./pages/VerifyOtp.jsx";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -137,12 +137,6 @@ export default function App() {
               <AdminLogin setUser={setUser} fetchProfile={fetchProfile} />
             }
           />
-
-          <Route path="/product/:id/reviews" element={
-            <UserRoute user={user} loading={loadingUser}>
-              <ListOfReviews user={user} />
-            </UserRoute>
-          } />
           
           <Route path="/payment" element={
             <UserRoute user={user} loading={loadingUser}>
