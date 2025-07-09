@@ -57,7 +57,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="w-1/2">
-            <STLViewer url="/api/uploads/models/AlchemyTable.stl" />
+ 
           </div>
         </div>
       </div>

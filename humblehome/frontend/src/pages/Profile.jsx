@@ -18,6 +18,73 @@ function Profile({ user, setUser }) {
   const [enquiries, setEnquiries] = useState([]);
   const [replyInputs, setReplyInputs] = useState({});
 
+  const [passwordData, setPasswordData] = useState({
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+});
+const [error, setError] = useState('');
+const [success, setSuccess] = useState('');
+const [isLoading, setIsLoading] = useState(false);
+
+const handlePasswordInputChange = (e) => {
+  const { name, value } = e.target;
+  setPasswordData(prev => ({ ...prev, [name]: value }));
+  // Clear errors when user types
+  if (error) setError('');
+};
+
+const handlePasswordChange = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  setError('');
+  setSuccess('');
+
+  // Frontend validation
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    setError('New passwords do not match');
+    setIsLoading(false);
+    return;
+  }
+
+  if (passwordData.newPassword.length < 8) {
+    setError('Password must be at least 8 characters');
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/change-password', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}` // Adjust based on your auth
+      },
+      body: JSON.stringify({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to change password');
+    }
+
+    setSuccess('Password changed successfully!');
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
   useEffect(() => {
     const fetchEnquiries = async () => {
       if (tab === "enquiries" && user) {
@@ -245,6 +312,16 @@ function Profile({ user, setUser }) {
           >
             Enquiries
           </button>
+          <button
+            className={`px-4 py-2 rounded-t font-semibold ${
+              tab === "enquiries"
+                ? "border-b-2 border-orange-500 text-orange-600"
+                : "text-gray-600 hover:text-orange-500"
+            }`}
+            onClick={() => setTab("security")}
+          >
+            Change Password
+          </button>
         </div>
 
         {tab === "profile" && (
@@ -424,7 +501,91 @@ function Profile({ user, setUser }) {
             )}
           </div>
         )}
+        {tab === "security" && (
+  <div className="mt-4 space-y-6">
+    <div className="border rounded p-4 shadow-sm bg-gray-50">
+      <h3 className="font-semibold text-lg mb-4">Change Password</h3>
+      
+      <form className="space-y-4" onSubmit={handlePasswordChange}>
+        <div>
+          <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            Current Password
+          </label>
+          <input
+            type="password"
+            id="currentPassword"
+            name="currentPassword"
+            value={passwordData.currentPassword}
+            onChange={handlePasswordInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+            placeholder="Enter your current password"
+            required
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            New Password
+          </label>
+          <input
+            type="password"
+            id="newPassword"
+            name="newPassword"
+            value={passwordData.newPassword}
+            onChange={handlePasswordInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+            placeholder="Enter your new password (min 8 characters)"
+            required
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            Confirm New Password
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            value={passwordData.confirmPassword}
+            onChange={handlePasswordInputChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+            placeholder="Confirm your new password"
+            required
+          />
+        </div>
+
+        {error && (
+          <div className="text-red-500 text-sm">{error}</div>
+        )}
+
+        {success && (
+          <div className="text-green-500 text-sm">{success}</div>
+        )}
+        
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {isLoading ? (
+            <>
+              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Changing...
+            </>
+          ) : (
+            'Change Password'
+          )}
+        </button>
+      </form>
+    </div>
+  </div>
+)}
       </div>
+        
     </main>
   );
 }

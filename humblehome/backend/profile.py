@@ -1,9 +1,11 @@
 from flask import Blueprint, request, jsonify, send_from_directory
 import os
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 from db import get_db
 from middleware import token_req
 from PIL import Image, UnidentifiedImageError
+from auth import is_password_complex
 import logging
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
@@ -134,3 +136,49 @@ def upload_pic(current_user):
 @profile_bp.route('/api/profile-image/<filename>')
 def get_profile_image(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
+
+@profile_bp.route('/api/change-password', methods=['PUT'])
+@token_req
+def change_password(current_user):
+    data = request.json
+    
+    # Validate required fields
+    required_fields = ['currentPassword', 'newPassword', 'confirmPassword']
+    if not all(field in data for field in required_fields):
+        logger.error(f"User \"{current_user['username']}\" password change failed: Missing required fields")
+        return jsonify({'error': 'All password fields are required'}), 400
+    
+    current_password = data['currentPassword']
+    new_password = data['newPassword']
+    confirm_password = data['confirmPassword']
+    
+    # Basic validation
+    if not current_password or not new_password or not confirm_password:
+        logger.error(f"User \"{current_user['username']}\" password change failed: Empty password fields")
+        return jsonify({'error': 'Password fields cannot be empty'}), 400
+    
+    if new_password != confirm_password:
+        logger.error(f"User \"{current_user['username']}\" password change failed: New passwords don't match")
+        return jsonify({'error': 'New password and confirmation do not match'}), 400
+    
+    if not is_password_complex:
+        logger.error(f"User \"{current_user['username']}\" password change failed")
+        return jsonify({'error': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.'}), 400
+    
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT password_hash FROM users WHERE user_id = %s", (current_user['user_id'],))
+    user = cursor.fetchone()
+    
+    if not user or not check_password_hash(user['password_hash'], current_password):
+        logger.error(f"User \"{current_user['username']}\" password change failed: Incorrect current password")
+        return jsonify({'error': 'Current password is incorrect'}), 401
+    
+  
+    hashed_password = generate_password_hash(new_password)
+    cursor.execute("UPDATE users SET password_hash = %s WHERE user_id = %s", 
+                  (hashed_password, current_user['user_id']))
+    db.commit()
+    
+    logger.info(f"User \"{current_user['username']}\" successfully changed their password")
+    return jsonify({'message': 'Password changed successfully'}), 200
