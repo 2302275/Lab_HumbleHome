@@ -89,6 +89,9 @@ const Header = ({ user, onLogout }) => {
                 <Link to="/profile" className="text-accent hover:underline">
                   {user.username}
                 </Link>
+                <Link to="/contact" className="text-accent hover:underline">
+                  Contact
+                </Link>
                 <button
                   onClick={onLogout}
                   className="text-accent hover:underline"

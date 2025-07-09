@@ -1,17 +1,34 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import STLViewer from "../STLViewer";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 
-export default function ProductDetail({ products, user }) {
+export default function ProductDetail({ user }) {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
   });
 
-  const { id } = useParams();
-  const product = products.find((p) => p.id === parseInt(id));
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const res = await fetch(`/api/products/${id}`);
+        if (!res.ok) throw new Error("Product not found");
+        const data = await res.json();
+        setProduct(data);
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
 
   const addToCart = () => {
     if (!product) return;
@@ -34,7 +51,7 @@ export default function ProductDetail({ products, user }) {
             name: product.name,
             quantity: 1,
             price: parseFloat(product.price),
-            thumbnail: product.thumbnail_image, // adjust based on your field
+            thumbnail: product.thumbnail_image,
           },
         ];
       }
@@ -47,9 +64,11 @@ export default function ProductDetail({ products, user }) {
     toast.success(`${product.name} added to cart`);
   };
 
-  if (!product) return <p>Product not found.</p>;
+  if (loading) return <p className="p-8">Loading...</p>;
+  if (!product) return <p className="p-8">Product not found.</p>;
 
   const productUrl = `/api/${product.model_file}`;
+
   return (
     <div className="w-3/4 p-8 flex">
       <aside className="w-1/4 pr-8">
@@ -67,7 +86,7 @@ export default function ProductDetail({ products, user }) {
           <div>
             <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
             <p className="text-sm text-gray-600 mb-2">{product.brand}</p>
-            <p className="text-lg font-semibold mb-4">{product.price}</p>
+            <p className="text-lg font-semibold mb-4">${product.price}</p>
             <p className="mb-4">{product.description}</p>
             {user?.role === "customer" && (
               <button
@@ -84,19 +103,7 @@ export default function ProductDetail({ products, user }) {
   );
 }
 
-
 ProductDetail.propTypes = {
-  products: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      name: PropTypes.string.isRequired,
-      price: PropTypes.string.isRequired,
-      thumbnail_image: PropTypes.string.isRequired,
-      model_file: PropTypes.string.isRequired,
-      description: PropTypes.string,
-      brand: PropTypes.string,
-    })
-  ).isRequired,
   user: PropTypes.shape({
     role: PropTypes.string.isRequired,
   }),

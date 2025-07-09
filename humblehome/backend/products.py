@@ -332,3 +332,15 @@ def search():
     finally:
         cursor.close()
         db.close()
+        
+@products_bp.route("/api/products/<int:product_id>", methods=["GET"])
+def fetch_product(product_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products WHERE id = %s AND status = 'active'", (product_id,))
+    product = cursor.fetchone()
+
+    if not product:
+        return jsonify({"error": "Product not found or is inactive."}), 404
+    
+    return jsonify(product)

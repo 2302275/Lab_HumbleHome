@@ -17,6 +17,9 @@ SMTP_USERNAME = 'ictssd4321@gmail.com'
 SMTP_PASSWORD = 'qhuy iszs sgql bipm'  # Consider loading from env vars
 FROM_EMAIL = 'noreply@yourdomain.com'
 
+# Configuration - should be in environment variables
+RESET_TOKEN_EXPIRY = 3600  # 1 hour in seconds
+
 def send_otp_email(recipient_email, otp_code):
     email_body = f"""
     Your 2FA verification code is: {otp_code}
@@ -256,5 +259,140 @@ def resend_otp():
     # Send OTP
     threading.Thread(target=send_otp_email, args=(user['email'], otp_code)).start()
 
+    logger.info(f"Resent OTP to \"{user['email']}\"")
+
     return jsonify({'message': 'OTP resent to your email'}), 200
 
+@auth_bp.route('/api/resetpassword', methods=['POST'])
+def reset_password():
+    data = request.get_json()
+    token = data.get('token')
+    new_password = data.get('new_password')
+    
+    if not token or not new_password:
+        return jsonify({'message': 'Token and new password are required', 'success': False}), 400
+    
+    if not is_password_complex(new_password):
+        return jsonify({
+            'message': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.',
+            'success': False
+        }), 400
+    
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
+    try:
+        db.start_transaction()
+        
+        # Check token validity and lock the row
+        cursor.execute("""
+            SELECT user_id, used 
+            FROM password_reset_tokens 
+            WHERE token = %s 
+            AND expires_at > NOW()
+            FOR UPDATE
+        """, (token,))
+        token_record = cursor.fetchone()
+        
+        if not token_record:
+            return jsonify({
+                'message': 'Invalid or expired token',
+                'success': False
+            }), 400
+            
+        if token_record['used']:
+            return jsonify({
+                'message': 'This token has already been used',
+                'success': False
+            }), 400
+        
+        # Update password
+        hashed_password = generate_password_hash(new_password)
+        cursor.execute(
+            "UPDATE users SET password_hash = %s WHERE user_id = %s",
+            (hashed_password, token_record['user_id'])
+        )
+        
+        # Mark token as used
+        cursor.execute("""
+            UPDATE password_reset_tokens 
+            SET used = TRUE 
+            WHERE token = %s
+        """, (token,))
+        
+        db.commit()
+        
+        return jsonify({
+            'message': 'Password updated successfully',
+            'success': True
+        }), 200
+        
+    except Exception as e:
+        db.rollback()
+        logging.error(f"Error resetting password: {str(e)}")
+        return jsonify({
+            'message': 'An error occurred while resetting password',
+            'success': False
+        }), 500
+    finally:
+        cursor.close()
+        
+@auth_bp.route('/api/forgotpassword', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    email = data.get('email')
+    
+    if not email:
+        return jsonify({'message': 'Email is required'}), 400
+    
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    
+    # 1. Check if email exists in database
+    cursor.execute("SELECT user_id FROM users WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    
+    if not user:
+        # For security, don't reveal if email doesn't exist
+        return jsonify({'message': 'If this email exists in our system, you will receive a password reset link'}), 200
+        # An email password reset link has been sent to your email address.
+    
+    # 2. Generate reset token and expiry
+    reset_token = secrets.token_urlsafe(32)
+    expiry = datetime.datetime.now() + datetime.timedelta(seconds=RESET_TOKEN_EXPIRY)
+    
+    # 3. Store token in database
+    cursor.execute(
+        "INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (%s, %s, %s)",
+        (user['user_id'], reset_token, expiry)
+    )
+    db.commit()
+    
+    # 4. Send email
+    reset_link = f"http://localhost/reset-password?token={reset_token}"
+    email_body = f"""
+    You are receiving this message because you have requested a password reset on HumbleHome.
+    Please click the link below to reset your password:
+    
+    {reset_link}
+    
+    This link will expire in 1 hour. If you did not request this, please ignore this email.
+    
+    HumbleHome Team
+    """
+    
+    msg = MIMEText(email_body)
+    msg['Subject'] = 'Password Reset Request'
+    msg['From'] = FROM_EMAIL
+    msg['To'] = email
+    
+    try:
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.send_message(msg)
+    except Exception as e:
+        # Log this error properly
+        return jsonify({'message': 'Failed to send reset email'}), 500
+    
+    return jsonify({'message': 'Password reset link sent to your email'}), 200

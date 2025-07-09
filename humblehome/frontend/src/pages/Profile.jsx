@@ -15,12 +15,82 @@ function Profile({ user, setUser }) {
   const [imageUrl, setImageUrl] = useState(null);
   const [tab, setTab] = useState("profile");
   const [purchaseHistory, setPurchaseHistory] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
+  const [replyInputs, setReplyInputs] = useState({});
+
+  useEffect(() => {
+    const fetchEnquiries = async () => {
+      if (tab === "enquiries" && user) {
+        const token = localStorage.getItem("token");
+        try {
+          const res = await fetch("/api/enquiries", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await res.json();
+          console.log(data);
+          setEnquiries(data);
+        } catch (error) {
+          toast.error("Failed to fetch enquiries.");
+          console.error(error);
+        }
+      }
+    };
+
+    fetchEnquiries();
+  }, [tab, user]);
+
+  const handleReplySubmit = async (enquiryId) => {
+    const token = localStorage.getItem("token");
+    const message = replyInputs[enquiryId];
+
+    if (!message) {
+      toast.error("Reply message cannot be empty.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/enquiries/${enquiryId}/userreply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Reply sent!");
+
+        // Clear input
+        setReplyInputs((prev) => ({ ...prev, [enquiryId]: "" }));
+
+        // Optionally refetch enquiries to reflect new message
+        setTab("reload"); // Triggers re-fetch
+        setTimeout(() => setTab("enquiries"), 50);
+      } else {
+        toast.error(data.error || "Failed to send reply.");
+      }
+    } catch (error) {
+      toast.error("Something went wrong.");
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
     const fetchHistory = async () => {
       if (tab === "history" && user) {
+        var token = localStorage.getItem("token");
         try {
-          const res = await fetch(`/api/purchase-history/${user.user_id}`);
+          const res = await fetch("/api/purchase-history", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           const data = await res.json();
           console.log(data);
           setPurchaseHistory(data);
@@ -51,7 +121,7 @@ function Profile({ user, setUser }) {
         address: user.address || "",
       });
 
-      setImageUrl(`/profile-image/${user.profile_pic}`);
+      setImageUrl(`uploads/image/${user.profile_pic}`);
     }
   }, [user, navigate]);
 
@@ -102,11 +172,11 @@ function Profile({ user, setUser }) {
         },
         body: formData,
       });
-      
+
       try {
         const data = await response.json();
         if (response.ok) {
-          setImageUrl(`/profile-image/${data.filename}`);
+          setImageUrl(`uploads/image${data.filename}`);
           setUser({ ...user, profile_pic: data.filename });
           console.log(data);
           // alert("Image Uploaded!");
@@ -116,7 +186,7 @@ function Profile({ user, setUser }) {
           toast.error(data.error || "Failed to upload");
         }
       } catch (jsonError) {
-        toast.error("File size exceeds the maximum limit of 3MB.")
+        toast.error("File size exceeds the maximum limit of 3MB.");
       }
     } catch (error) {
       toast.error("Failed to upload image. Please try again.");
@@ -132,7 +202,7 @@ function Profile({ user, setUser }) {
           {imageUrl && (
             <div className="my-4 mr-2">
               <img
-                src={`/api/${imageUrl}`}
+                src={`api/${imageUrl}`}
                 alt="Profile"
                 className="h-32 w-32 object-cover rounded"
               />
@@ -284,6 +354,71 @@ function Profile({ user, setUser }) {
                       {Number(order.total_amount).toFixed(2)}
                     </span>
                   </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {tab === "enquiries" && (
+          <div className="mt-4 space-y-4">
+            {enquiries.length === 0 ? (
+              <p>No enquiries submitted.</p>
+            ) : (
+              enquiries.map((enq) => (
+                <div
+                  key={enq.enquiry_id}
+                  className="border p-4 rounded shadow-sm bg-gray-50"
+                >
+                  <h4 className="text-md font-semibold mb-1">{enq.subject}</h4>
+                  <p className="text-sm text-gray-700 mb-1">
+                    <strong>Status:</strong> {enq.status}
+                  </p>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Created: {new Date(enq.created_at).toLocaleString()}
+                  </p>
+
+                  <div className="text-sm p-2 border-l-4 border-orange-300 bg-white mb-2">
+                    <strong>You:</strong> {enq.message}
+                  </div>
+
+                  {enq.messages?.map((msg) => (
+                    <div
+                      key={msg.message_id}
+                      className={`text-sm p-2 rounded mb-2 ${
+                        msg.sender_role === "admin"
+                          ? "bg-blue-100 border-l-4 border-blue-400"
+                          : "bg-orange-100 border-l-4 border-orange-400"
+                      }`}
+                    >
+                      <strong>
+                        {msg.sender_role === "admin" ? "Admin" : "You"}:
+                      </strong>{" "}
+                      {msg.message}
+                      <div className="text-xs text-gray-500 mt-1">
+                        {new Date(msg.created_at).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+
+                  <textarea
+                    rows="2"
+                    placeholder="Type your reply..."
+                    className="w-full p-2 border rounded mb-2"
+                    value={replyInputs[enq.enquiry_id] || ""}
+                    onChange={(e) =>
+                      setReplyInputs((prev) => ({
+                        ...prev,
+                        [enq.enquiry_id]: e.target.value,
+                      }))
+                    }
+                  />
+                  <button
+                    onClick={() => handleReplySubmit(enq.enquiry_id)}
+                    className="px-4 py-2 text-sm text-white bg-orange-500 rounded hover:bg-orange-600"
+                  >
+                    Send Reply
+                  </button>
                 </div>
               ))
             )}
