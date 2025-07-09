@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 function AdminDashboard({ user, setUser }) {
   const [products, setProducts] = useState([]);
@@ -9,6 +10,8 @@ function AdminDashboard({ user, setUser }) {
   const [newCategory, setNewCategory] = useState("");
   const [dragIndex, setDragIndex] = useState(null);
   const [categoryStats, setCategoryStats] = useState([]);
+  const [enquiries, setEnquiries] = useState([]);
+  const [replyMessage, setReplyMessage] = useState("");
 
   //Modals states
   const [showEditModal, setShowEditModal] = useState(false);
@@ -27,6 +30,24 @@ function AdminDashboard({ user, setUser }) {
     imagesToDelete: [],
     newImages: [],
   });
+
+  useEffect(() => {
+    if (activeTab === "enquiries") {
+      fetchEnquiries();
+    }
+  }, [activeTab]);
+
+  const fetchEnquiries = async () => {
+    try {
+      const res = await fetch("/api/admin/enquiries", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      const data = await res.json();
+      setEnquiries(data);
+    } catch (err) {
+      toast.error("Failed to fetch enquiries");
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -91,9 +112,7 @@ function AdminDashboard({ user, setUser }) {
 
   const fetchCategoryStats = async () => {
     try {
-      const res = await fetch(
-        "http://localhost:5000/api/categories_with_count"
-      );
+      const res = await fetch("/api/categories_with_count");
       const data = await res.json();
       setCategoryStats(data);
     } catch (err) {
@@ -173,16 +192,13 @@ function AdminDashboard({ user, setUser }) {
 
     // Send request
     try {
-      const res = await fetch(
-        `http://localhost:5000/admin/api/update_product/${productId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: data,
-        }
-      );
+      const res = await fetch(`/api/admin/api/update_product/${productId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: data,
+      });
 
       if (res.ok) {
         toast.success("Product updated successfully!");
@@ -198,10 +214,35 @@ function AdminDashboard({ user, setUser }) {
     }
   };
 
+  const handleReply = async (enquiryId) => {
+    if (!replyMessage.trim()) return;
+
+    try {
+      const res = await fetch(`/api/enquiries/${enquiryId}/reply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ message: replyMessage }),
+      });
+
+      if (res.ok) {
+        toast.success("Reply sent!");
+        setReplyMessage("");
+        fetchEnquiries(); // Refresh
+      } else {
+        toast.error("Failed to send reply");
+      }
+    } catch (err) {
+      toast.error("Server error");
+    }
+  };
+
   // Fetch all products for product management
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/products");
+      const response = await fetch("/api/products");
       const data = await response.json();
       console.log(data);
       setProducts(data);
@@ -213,7 +254,7 @@ function AdminDashboard({ user, setUser }) {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/categories");
+        const response = await fetch("/api/categories");
         const data = await response.json();
         // console.log(data);
         setCategories(data);
@@ -243,7 +284,7 @@ function AdminDashboard({ user, setUser }) {
       data.append("images", file);
     });
 
-    const res = await fetch("http://localhost:5000/admin/add_product", {
+    const res = await fetch("/api/admin/add_product", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -298,13 +339,13 @@ function AdminDashboard({ user, setUser }) {
                   </button>
                   <button
                     className={`py-2 px-4 rounded text-left shadow ${
-                      activeTab === "users"
+                      activeTab === "enquiries"
                         ? "bg-accent text-white font-bold"
                         : "hover:bg-gray-100"
                     }`}
-                    onClick={() => setActiveTab("users")}
+                    onClick={() => setActiveTab("enquiries")}
                   >
-                    Users
+                    Enquiries
                   </button>
                   <button
                     className={`py-2 px-4 rounded text-left shadow ${
@@ -444,10 +485,62 @@ function AdminDashboard({ user, setUser }) {
               </div>
             )}
 
-            {activeTab === "users" && (
-              <div>
-                <h2 className="text-xl font-bold mb-4">User Management</h2>
-                <p>Coming soon...</p>
+            {activeTab === "enquiries" && (
+              <div className="p-4 bg-white shadow rounded space-y-4">
+                <h2 className="text-xl font-bold">User Enquiries</h2>
+                {enquiries.length === 0 ? (
+                  <p>No enquiries found.</p>
+                ) : (
+                  enquiries.map((enquiry) => (
+                    <div
+                      key={enquiry.enquiry_id}
+                      className="border p-4 rounded shadow-sm"
+                    >
+                      <div className="mb-2">
+                        <h3 className="font-semibold">{enquiry.subject}</h3>
+                        <p className="text-sm text-gray-500">
+                          From: {enquiry.username} (
+                          {new Date(enquiry.created_at).toLocaleString()})
+                        </p>
+                      </div>
+
+                      <div className="space-y-2 border-l-2 pl-4 border-orange-400 mb-3">
+                        <p>
+                          <strong>Initial:</strong> {enquiry.initial_message}
+                        </p>
+                        {enquiry.messages.map((msg) => (
+                          <div key={msg.message_id} className="text-sm">
+                            <p className="text-gray-700">
+                              <span className="font-semibold">
+                                {msg.sender_role}:
+                              </span>{" "}
+                              {msg.message}
+                            </p>
+                            <p className="text-gray-400 text-xs">
+                              {new Date(msg.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          placeholder="Reply..."
+                          className="border px-3 py-1 rounded w-full"
+                          value={replyMessage}
+                          onChange={(e) => setReplyMessage(e.target.value)}
+                        />
+                        <button
+                          onClick={() => handleReply(enquiry.enquiry_id)}
+                          className="bg-accent text-white px-4 py-1 rounded"
+                        >
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
@@ -679,7 +772,7 @@ function AdminDashboard({ user, setUser }) {
                       onDrop={() => handleDrop(index)}
                     >
                       <img
-                        src={`http://localhost:5000/${image}`}
+                        src={`/api/${image}`}
                         alt={`Product-${index}`}
                         className="w-full h-full object-cover"
                       />
@@ -746,26 +839,19 @@ function AdminDashboard({ user, setUser }) {
                 form.append("name", newCategory);
                 e.preventDefault();
                 try {
-                  const res = await fetch(
-                    "http://localhost:5000/admin/api/add_category",
-                    {
-                      method: "POST",
-                      headers: {
-                        Authorization: `Bearer ${localStorage.getItem(
-                          "token"
-                        )}`,
-                      },
-                      body: form,
-                    }
-                  );
+                  const res = await fetch("/api/admin/api/add_category", {
+                    method: "POST",
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                    body: form,
+                  });
                   const response = await res.json();
                   if (res.ok) {
                     toast.success("Category added!");
                     setNewCategory("");
                     setShowAddCategoryModal(false);
-                    const categoryRes = await fetch(
-                      "http://localhost:5000/api/categories"
-                    );
+                    const categoryRes = await fetch("/api/categories");
                     const categoryData = await categoryRes.json();
                     setCategories(categoryData);
                   } else {
@@ -799,4 +885,13 @@ function AdminDashboard({ user, setUser }) {
   );
 }
 
+AdminDashboard.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    username: PropTypes.string,
+    role: PropTypes.string,
+  }).isRequired,
+
+  setUser: PropTypes.func.isRequired,
+};
 export default AdminDashboard;

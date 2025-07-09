@@ -3,58 +3,93 @@ from functools import wraps
 from middleware import token_req
 from db import get_db
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import BadRequest
+from middleware import token_req
 import os
 import json
+import logging
+
+logger = logging.getLogger('humblehome_logger')  # Custom logger
 
 purchases_bp = Blueprint('purchases', __name__)
 
+def is_valid_cart(cart):
+    if not isinstance(cart, list):
+        return False
+    for item in cart:
+        if not all(k in item for k in ["product_id", "quantity", "price"]):
+            return False
+        if not isinstance(item["product_id"], int) or item["product_id"] <= 0:
+            return False
+        if not isinstance(item["quantity"], int) or item["quantity"] <= 0:
+            return False
+        if not isinstance(item["price"], (int, float)) or item["price"] < 0:
+            return False
+    return True
+
 # TODO: Add to order_items & orders
-@purchases_bp.route('/api/checkout', methods = ['POST'])
-def checkout():
+@purchases_bp.route('/api/checkout', methods=['POST'])
+@token_req
+def checkout(current_user):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    
+
     try:
-        data = request.get_json()
+        data = request.get_json(force=True)
+        logger.info(f"Checkout initiated by \"{current_user['username']}\".")
         customer_id = data.get("customer_id")
         cart = data.get("cart")
-        shipping_address = data.get('shipping_address')
+        shipping_address = data.get("shipping_address")
         payment_method = data.get("payment_method")
-        
-        if not customer_id or not cart or not shipping_address or not payment_method:
-            return jsonify({"error": "Missing required fields"}), 400
-        
+
+        # Input validation
+        if not isinstance(customer_id, int):
+            raise BadRequest("Invalid customer ID.")
+        if not is_valid_cart(cart):
+            raise BadRequest("Invalid cart format.")
+        if not isinstance(shipping_address, str) or not shipping_address.strip():
+            raise BadRequest("Invalid address.")
+        if payment_method not in ["card", "paypal"]:
+            raise BadRequest("Invalid payment method.")
+
         total_amount = sum(item['quantity'] * item['price'] for item in cart)
-        
+
         cursor.execute("""
             INSERT INTO orders (user_id, order_date, status, total_amount, shipping_address, payment_method)
             VALUES (%s, NOW(), %s, %s, %s, %s)
         """, (customer_id, "pending", total_amount, shipping_address, payment_method))
-        
+
+        logger.info(f"Order created for user \"{current_user['username']}\".")
         order_id = cursor.lastrowid
-        
+
         for item in cart:
             cursor.execute("""
                 INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase)
                 VALUES (%s, %s, %s, %s)
             """, (order_id, item["product_id"], item["quantity"], item["price"]))
 
+        logger.info(f"Order items added to \"{current_user['username']}\" order.")
+
         db.commit()
-    
+
         return jsonify({
             "message": "Order placed successfully",
             "order_id": order_id,
             "total_amount": total_amount
         }), 201
-        
+
+    except BadRequest as e:
+        logger.error(f"Checkout failed for user \"{current_user['username']}\": {str(e)}")
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
+        logger.error(f"Checkout error for user \"{current_user['username']}\": {str(e)}")
         db.rollback()
-        # print("Checkout Error:", e)
         return jsonify({"error": "Something went wrong during checkout"}), 500
-        # return jsonify({"error": str(e), "data": data}), 500 <- Debug Line if needed
+
     
-@purchases_bp.route('/api/purchase-history/<int:user_id>', methods=['GET'])
-def get_purchase_history(user_id):
+@purchases_bp.route('/api/purchase-history', methods=['GET'])
+@token_req
+def get_purchase_history(current_user):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
@@ -66,7 +101,7 @@ def get_purchase_history(user_id):
         JOIN products p ON oi.product_id = p.id
         WHERE o.user_id = %s
         ORDER BY o.order_date DESC
-    """, (user_id,))
+    """, (current_user['user_id'],))
     
     rows = cursor.fetchall()
 
@@ -92,3 +127,129 @@ def get_purchase_history(user_id):
             orders[order_id]["items"].append(item)
 
     return jsonify(list(orders.values())), 200
+
+@purchases_bp.route("/api/enquiries", methods=["POST"])
+@token_req
+def create_enquiry(current_user):
+    data = request.get_json()
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("""
+        INSERT INTO enquiries (user_id, product_id, order_id, subject, message, status, created_at, updated_at)
+        VALUES (%s, %s, %s, %s, %s, 'open', NOW(), NOW())
+    """, (
+        current_user['user_id'],
+        data.get("product_id"),
+        data.get("order_id"),
+        data.get("subject"),
+        data.get("message"),
+    ))
+    
+    logger.info(f"Enquiry created by user \"{current_user['username']}\" with subject: {data.get('subject')}")
+
+    enquiry_id = cursor.lastrowid
+
+    cursor.execute("""
+        INSERT INTO enquiry_message (enquiry_id, sender_role, message, created_at)
+        VALUES (%s, 'user', %s, NOW())
+    """, (enquiry_id, data.get("message")))
+    
+    logger.info(f"Message added to enquiry ID: {enquiry_id} by user \"{current_user['username']}\"")
+
+    db.commit()
+
+    return jsonify({"message": "Enquiry submitted", "enquiry_id": enquiry_id}), 201
+
+@purchases_bp.route("/api/enquiries", methods=["GET"])
+@token_req
+def get_user_enquiries(current_user):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute(
+        "SELECT * FROM enquiries WHERE user_id = %s ORDER BY created_at DESC",
+        (current_user["user_id"],)
+    )
+    enquiries = cursor.fetchall()
+
+    for enquiry in enquiries:
+       cursor.execute(
+            """
+            SELECT * FROM enquiry_message 
+            WHERE enquiry_id = %s 
+            AND message != %s 
+            ORDER BY created_at ASC
+            """,
+            (enquiry["enquiry_id"], enquiry["message"])
+        )
+    enquiry["messages"] = cursor.fetchall()
+
+    return jsonify(enquiries), 200
+
+@purchases_bp.route("/api/enquiries/<int:enquiry_id>/reply", methods=["POST"])
+@token_req
+def reply_to_enquiry(current_user, enquiry_id):
+    data = request.get_json()
+    message = data.get("message")
+    if not message:
+        return jsonify({"error": "Message required"}), 400
+
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO enquiry_message (enquiry_id, sender_role, message) VALUES (%s, %s, %s)",
+        (enquiry_id, 'admin', message)
+    )
+
+    logger.info(f"User \"{current_user['username']}\" replied to enquiry ID: {enquiry_id}.")
+
+    db.commit()
+    return jsonify({"message": "Reply sent"})
+
+@purchases_bp.route("/api/admin/enquiries", methods=["GET"])
+@token_req
+def get_all_enquiries(current_user):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT e.enquiry_id AS enquiry_id, e.subject, e.message AS initial_message, e.user_id, e.created_at, u.username
+        FROM enquiries e
+        JOIN users u ON u.user_id = e.user_id
+        ORDER BY e.created_at DESC
+    """)
+    enquiries = cursor.fetchall()
+
+    for enquiry in enquiries:
+        cursor.execute("""
+            SELECT message_id, sender_role, message, created_at
+            FROM enquiry_message
+            WHERE enquiry_id = %s
+            ORDER BY created_at ASC
+        """, (enquiry["enquiry_id"],))
+        enquiry["messages"] = cursor.fetchall()
+
+    logger.info(f"User \"{current_user['username']}\" retrieved all enquiries. Total enquiries: {len(enquiries)}")
+
+    return jsonify(enquiries)
+
+@purchases_bp.route("/api/enquiries/<int:enquiry_id>/userreply", methods=["POST"])
+@token_req
+def reply_to_enquiry_user(current_user, enquiry_id):
+    data = request.get_json()
+    message = data.get("message")
+    if not message:
+        return jsonify({"error": "Message required"}), 400
+
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO enquiry_message (enquiry_id, sender_role, message) VALUES (%s, %s, %s)",
+        (enquiry_id, 'user', message)
+    )
+    
+    logger.info(f"User \"{current_user['username']}\" replied to enquiry ID: {enquiry_id}.")
+    
+    db.commit()
+    return jsonify({"message": "Reply sent"})

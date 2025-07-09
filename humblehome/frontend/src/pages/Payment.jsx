@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
+
+
+// Input sanitization
+const sanitizeInput = (str) => str.replace(/[<>\/\\'"`]/g, "").trim();
+
+// Validation functions
+const isValidCardNumber = (num) => /^\d{16}$/.test(num.replace(/\s+/g, ""));
+const isValidExpiry = (exp) => /^(0[1-9]|1[0-2])\/\d{2}$/.test(exp);
+const isValidCVV = (cvv) => /^\d{3,4}$/.test(cvv);
+const isValidPostal = (postal) => /^[A-Za-z0-9\s\-]{3,10}$/.test(postal);
+
 
 export default function Payment({ user }) {
   const [cart, setCart] = useState([]);
@@ -17,7 +29,7 @@ export default function Payment({ user }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log(user);
+    // console.log(user);
     const saved = localStorage.getItem("cart");
     setCart(saved ? JSON.parse(saved) : []);
   }, [user]);
@@ -26,16 +38,63 @@ export default function Payment({ user }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    let newValue = value;
+
+    if (name === "cardNumber") {
+      // Remove all non-digits
+      const digits = value.replace(/\D/g, "").substring(0, 16);
+      // Add spaces every 4 digits
+      newValue = digits.replace(/(.{4})/g, "$1 ").trim();
+    }
+
+    if (name === "expiry") {
+      // Remove non-digits
+      const digits = value.replace(/\D/g, "").substring(0, 4);
+      // Format MM/YY
+      if (digits.length >= 3) {
+        newValue = `${digits.substring(0, 2)}/${digits.substring(2, 4)}`;
+      } else {
+        newValue = digits;
+      }
+    }
+
+    if (name === "cvv") {
+      newValue = value.replace(/\D/g, "").substring(0, 4); // Only 3 or 4 digits
+    }
+
+    setForm((prev) => ({ ...prev, [name]: newValue }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.cardNumber || !form.expiry || !form.cvv) {
-      toast.error("Please fill in all fields.");
-      return;
+    // Sanitize inputs
+  const cleanForm = { ...form };
+  Object.keys(cleanForm).forEach((key) => {
+    if (key !== "expiry" && key !== "cardNumber" && key !== "cvv") {
+      cleanForm[key] = sanitizeInput(cleanForm[key]);
     }
+  });
+
+  // Validate critical fields
+  if (!isValidCardNumber(cleanForm.cardNumber)) {
+    toast.error("Card number must be 16 digits.");
+    return;
+  }
+  if (!isValidExpiry(cleanForm.expiry)) {
+    toast.error("Expiry must be in MM/YY format.");
+    return;
+  }
+  if (!isValidCVV(cleanForm.cvv)) {
+    toast.error("CVV must be 3 or 4 digits.");
+    return;
+  }
+  if (!isValidPostal(cleanForm.postalCode)) {
+    toast.error("Postal code must be 3–10 alphanumeric characters.");
+    return;
+  }
+
 
     const formData = {
       customer_id: user.user_id,
@@ -44,12 +103,12 @@ export default function Payment({ user }) {
         quantity,
         price,
       })),
-      shipping_address: `${form.address}, ${form.city}, ${form.postalCode}`,
+      shipping_address: `${cleanForm.address}, ${cleanForm.city}, ${cleanForm.postalCode}`,
       payment_method: "card",
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/checkout", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -140,6 +199,8 @@ export default function Payment({ user }) {
             <input
               type="text"
               name="cardNumber"
+              maxLength={19} // 16 digits + 3 spaces
+              inputMode="numeric"
               value={form.cardNumber}
               onChange={handleChange}
               placeholder="Card Number"
@@ -150,6 +211,8 @@ export default function Payment({ user }) {
               <input
                 type="text"
                 name="expiry"
+                maxLength={5} // MM/YY
+                inputMode="numeric"
                 value={form.expiry}
                 onChange={handleChange}
                 placeholder="MM/YY"
@@ -159,6 +222,8 @@ export default function Payment({ user }) {
               <input
                 type="text"
                 name="cvv"
+                maxLength={4}
+                inputMode="numeric"
                 value={form.cvv}
                 onChange={handleChange}
                 placeholder="CVV"
@@ -204,4 +269,15 @@ export default function Payment({ user }) {
       </div>
     </div>
   );
+}
+
+
+Payment.propTypes = {
+  user: PropTypes.shape({
+    user_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    username: PropTypes.string,
+    role: PropTypes.string
+  }).isRequired,
+
+  setUser: PropTypes.func.isRequired,
 }

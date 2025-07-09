@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateUsernameOrEmail } from "../components/validator";
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 export default function AdminLogin({ setUser, fetchProfile }) {
   const [password, setPassword] = useState("");
@@ -19,10 +20,10 @@ export default function AdminLogin({ setUser, fetchProfile }) {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ login, password }),
+        body: JSON.stringify({ login, password, login_source: "admin" }),
       });
 
       const data = await res.json();
@@ -40,6 +41,7 @@ export default function AdminLogin({ setUser, fetchProfile }) {
         toast.error(data.message || "Login failed");
       }
     } catch (err) {
+      console.log(err);
       toast.error("Server error. Please try again.");
     }
   };
@@ -75,3 +77,9 @@ export default function AdminLogin({ setUser, fetchProfile }) {
     </div>
   );
 }
+
+AdminLogin.propTypes = {
+  setUser: PropTypes.func.isRequired,
+  fetchProfile: PropTypes.func.isRequired,
+};
+

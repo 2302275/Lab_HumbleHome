@@ -17,7 +17,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTS
 
-@profile_bp.route('/update-profile', methods=['PUT'])
+@profile_bp.route('/api/update-profile', methods=['PUT'])
 @token_req
 def updateProfile(current_user):
     data = request.json
@@ -67,14 +67,24 @@ def updateProfile(current_user):
         logger.info(f'User "{current_user["username"]}" submitted profile update with no changes.')
         return jsonify({'message': 'No changes detected'}), 200
 
-@profile_bp.route('/upload-profile-image', methods = ['POST'])
+@profile_bp.route('/api/upload-profile-image', methods = ['POST'])
 @token_req
 def upload_pic(current_user):
+    logger.info(f"User \"{current_user['username']}\" initiated profile image upload")
+    
     if 'image' not in request.files:
+        logger.error(f"User \"{current_user['username']}\" upload failed: No file is being uploaded")
         return jsonify({'error': 'No image part in req'}), 400
     
     file = request.files['image']
-    if file.filename == '':
+    
+    # Check if file is None or has no filename
+    if file is None:
+        logger.error(f"User \"{current_user['username']}\" upload failed: File is null")
+        return jsonify({'error': 'No file provided'}), 400
+        
+    if file.filename == '' or file.filename is None:
+        logger.error(f"User \"{current_user['username']}\" upload failed: No file submitted or empty filename")
         return jsonify({'error': 'No file submitted'}), 400
     
     # Check file size (3MB limit)
@@ -83,11 +93,16 @@ def upload_pic(current_user):
     file_length = file.tell()  # Get file size
     file.seek(0)  # Reset cursor position
     
+    # Check if file is completely empty (0 bytes)
+    if file_length == 0:
+        logger.error(f"User \"{current_user['username']}\" upload failed: File is empty (0 bytes)")
+        return jsonify({'error': 'File is empty. Please re-upload another file.'}), 400
+
     if file_length > max_size:
         logger.error(f"User \"{current_user['username']}\" attempted to upload a file larger than 3MB")
-        return jsonify({'error': 'File size exceeds 3MB limit'}), 400
+        return jsonify({'error': 'File size exceeds the maximum limit of 3MB.'}), 400
     
-    if file and allowed_file(file.filename):
+    if allowed_file(file.filename):
         filename = secure_filename(f"{file.filename}")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
@@ -99,8 +114,8 @@ def upload_pic(current_user):
             
         except (UnidentifiedImageError, ValueError, OSError):
             os.remove(filepath)
-            logger.error(f"User \"{current_user['username']}\" uploaded an invalid or corrupted image (.JPEG, .JPG, .PNG) file")
-            return jsonify({'error': 'Invalid or corrupted image file'}), 400
+            logger.error(f"User \"{current_user['username']}\" attempted to upload an invalid or corrupted image (.JPEG, .JPG, .PNG) file")
+            return jsonify({'error': 'Invalid or Corrupted Image file'}), 400
 
         db = get_db()
         cursor = db.cursor()
@@ -112,12 +127,11 @@ def upload_pic(current_user):
             'message': 'Profile image uploaded successfully!',
             'filename': filename  # or whatever variable holds the filename
         }), 200
-        
     else:
-        logger.error(f"User \"{current_user['username']}\" upload failed: Invalid file type or Corrupted image file")
-        return jsonify({'error': 'Image submitted is invalid'}), 400
+        logger.error(f"User \"{current_user['username']}\" upload failed: Invalid file type -- {file.filename}")
+        return jsonify({'error': 'Invalid file type. Only .JPEG, .JPG, .PNG files are allowed.'}), 400
 
-@profile_bp.route('/profile-image/<filename>')
+@profile_bp.route('/api/profile-image/<filename>')
 def get_profile_image(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 

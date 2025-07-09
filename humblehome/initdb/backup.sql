@@ -320,6 +320,35 @@ LOCK TABLES `reviews` WRITE;
 UNLOCK TABLES;
 
 --
+-- Table structure for table `two_factor_codes`
+--
+
+DROP TABLE IF EXISTS `two_factor_codes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `two_factor_codes` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL,
+  `otp_code` varchar(10) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `attempts_left` int DEFAULT '3',
+  `is_used` tinyint(1) DEFAULT '0',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `two_factor_codes`
+--
+
+LOCK TABLES `two_factor_codes` WRITE;
+/*!40000 ALTER TABLE `two_factor_codes` DISABLE KEYS */;
+INSERT INTO `two_factor_codes` VALUES (1,6,'053534','2025-07-03 20:11:56',3,0,'2025-07-03 20:06:55'),(2,6,'390459','2025-07-03 20:17:37',3,0,'2025-07-03 20:12:36'),(3,6,'665817','2025-07-03 20:25:14',3,1,'2025-07-03 20:20:14'),(4,6,'685950','2025-07-03 20:26:24',1,0,'2025-07-03 20:21:24'),(5,6,'739130','2025-07-04 08:54:42',2,1,'2025-07-04 08:49:41'),(6,6,'049513','2025-07-04 09:13:19',3,1,'2025-07-04 09:08:19'),(7,7,'928657','2025-07-04 09:30:32',3,1,'2025-07-04 09:25:32');
+/*!40000 ALTER TABLE `two_factor_codes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `users`
 --
 
@@ -338,10 +367,11 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `profile_pic` varchar(255) DEFAULT NULL,
+  `last_ip` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -350,7 +380,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (4,'admin','admin@admin.com','scrypt:32768:8:1$clTQw3Yrv4apONTD$95a46f9cea5324be7b8e3d507f041e65858376e7e60d7760ada459cea7b02d7df474774b0fd35f9ee5f0b38c0ac463bdbe9d2e41a4926438cdbb85ca400b0bc0','admin',NULL,NULL,NULL,'2025-06-22 08:33:02','2025-06-22 08:33:19',NULL),(5,'altius','altiuschua9@gmail.com','scrypt:32768:8:1$g11BAv0d14EiOijP$6da13c7cf51c0599c6338390457493c2b08a0acf8683623066931a174a43d298e6fc98291dbd23601b28f01eb31ff71a33ca4b62fe831dbfd6308489e702313c','customer',NULL,NULL,NULL,'2025-07-03 11:47:21','2025-07-03 11:47:21',NULL);
+INSERT INTO `users` VALUES (4,'admin','admin@admin.com','scrypt:32768:8:1$clTQw3Yrv4apONTD$95a46f9cea5324be7b8e3d507f041e65858376e7e60d7760ada459cea7b02d7df474774b0fd35f9ee5f0b38c0ac463bdbe9d2e41a4926438cdbb85ca400b0bc0','admin',NULL,NULL,NULL,'2025-06-22 08:33:02','2025-06-22 08:33:19',NULL,NULL),(5,'altius','altiuschua9@gmail.com','scrypt:32768:8:1$g11BAv0d14EiOijP$6da13c7cf51c0599c6338390457493c2b08a0acf8683623066931a174a43d298e6fc98291dbd23601b28f01eb31ff71a33ca4b62fe831dbfd6308489e702313c','customer',NULL,NULL,NULL,'2025-07-03 11:47:21','2025-07-03 11:47:21',NULL,NULL),(6,'justin','justin9872010@hotmail.com','scrypt:32768:8:1$ailjV8VmVPaMQnH1$61498fe5fad2ddd4d75f52ef747179b43168b6145d3554f67c6b45675291f0c60bdaac7822c8ea2c903802b29f24aa144f61aea1e807b24597c5ce7be5d78d1a','customer',NULL,NULL,NULL,'2025-07-03 20:05:40','2025-07-04 09:08:39',NULL,'172.18.0.1'),(7,'tester','pekow47784@coasah.com','scrypt:32768:8:1$VkCppJ4T2uIU2i5g$2e181a96e07b0423a6d80efa24636ceb9766df8202c68a132f685c215a7c45be0c3fab1696d85b3802cc70b503bdf284ca496f2f0b2d1b1c7f9c72c1fa71a9d9','customer',NULL,NULL,NULL,'2025-07-04 09:25:27','2025-07-04 09:25:50',NULL,'172.18.0.1');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -363,4 +393,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-03 19:51:49
+-- Dump completed on 2025-07-04 17:54:48

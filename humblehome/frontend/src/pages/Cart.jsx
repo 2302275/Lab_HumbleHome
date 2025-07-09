@@ -93,7 +93,7 @@ export default function Cart() {
                     <tr key={item.product_id} className="border-b">
                       <td className="px-4 py-2">
                         <img
-                          src={`http://localhost:5000/${item.thumbnail}`}
+                          src={`/${item.thumbnail}`}
                           alt={item.name}
                           className="w-16 h-16 object-cover rounded"
                         />

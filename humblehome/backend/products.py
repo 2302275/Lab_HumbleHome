@@ -5,7 +5,9 @@ from db import get_db
 from werkzeug.utils import secure_filename
 import os
 import json
+import logging
 
+logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
 products_bp = Blueprint('products', __name__)
 ALLOWED_EXTENSIONS = {'stl'}
@@ -30,15 +32,15 @@ def is_valid_stl(file_stream):
         return False
     
 
-@products_bp.route('/uploads/images/<filename>')
+@products_bp.route('/api/uploads/images/<filename>')
 def serve_image_file(filename):
     return send_from_directory('uploads/images', filename)
 
-@products_bp.route('/uploads/models/<filename>')
+@products_bp.route('/api/uploads/models/<filename>')
 def serve_model_file(filename):
     return send_from_directory('uploads/models', filename)
 
-@products_bp.route('/admin/add_product', methods=['POST'])
+@products_bp.route('/api/admin/add_product', methods=['POST'])
 @token_req
 def add_product(current_user):
     db = get_db()
@@ -89,6 +91,7 @@ def add_product(current_user):
         "INSERT INTO products (name, model_file, price, description, stock, thumbnail_image) VALUES (%s, %s, %s, %s, %s, %s)",
         (name, model_path, price, description, stock, thumbnail_path)
     )
+    logger.info(f"New Product added! -- \"{name}\" by user \"{current_user['username']}\"")
     product_id = cursor.lastrowid
     
     # Save product images
@@ -102,14 +105,16 @@ def add_product(current_user):
                 "INSERT INTO product_images (product_id, image_url, alt_text, sort_order) VALUES (%s, %s, %s, %s)",
                 (product_id, image_path, image.filename, i)
             )
-    
+            logger.info(f"Image {image_filename} uploaded for product \"{name}\" by user \"{current_user['username']}\".")
+
     cursor.execute("SELECT id from category WHERE name = %s", (category,))
     cat_id = cursor.fetchone()['id']
     if not cat_id:
         return jsonify({"error": "Invalid file format"}), 400   
     
     # Insert into category_products
-    cursor.execute("INSERT into category_products (product_id, category_id) VALUES (%s, %s)", (product_id, cat_id))  
+    cursor.execute("INSERT into category_products (product_id, category_id) VALUES (%s, %s)", (product_id, cat_id))
+    logger.info(f"Product \"{name}\" added to category \"{category}\" by user \"{current_user['username']}\". ")
     db.commit()
      
     return jsonify({
@@ -181,7 +186,7 @@ def get_categories():
     
     return jsonify(categories), 200    
 
-@products_bp.route('/admin/api/update_product/<int:product_id>', methods = ['PUT'])
+@products_bp.route('/api/admin/api/update_product/<int:product_id>', methods = ['PUT'])
 @token_req
 def update_product(current_user, product_id):
     db = get_db()
@@ -211,6 +216,7 @@ def update_product(current_user, product_id):
     if fields:
         values.append(product_id)
         cursor.execute(f"UPDATE products SET {', '.join(fields)} WHERE id = %s", values)
+        logger.info(f"Product \"{name}\" details updated by user \"{current_user['username']}\". -- Fields Updated: {', '.join(fields)}")
 
     # Category update
     if category:
@@ -221,6 +227,7 @@ def update_product(current_user, product_id):
         cat_id = cat['id']
         cursor.execute("DELETE FROM category_products WHERE product_id = %s", (product_id,))
         cursor.execute("INSERT INTO category_products (product_id, category_id) VALUES (%s, %s)", (product_id, cat_id))
+        logger.info(f"Product \"{name}\" updated to category \"{category}\" by user \"{current_user['username']}\".")
 
     if thumbnail:
         thumbnail_filename = f"thumb_{secure_filename(thumbnail.filename)}"
@@ -230,7 +237,8 @@ def update_product(current_user, product_id):
             "UPDATE products SET thumbnail_image = %s WHERE id = %s",
             (thumbnail_path, product_id)
         )
-    
+        logger.info(f"Thumbnail image updated for product \"{name}\" by user \"{current_user['username']}\".")
+
     if existing_images_order:
         try:
             existing_images_order = json.loads(existing_images_order)
@@ -244,6 +252,7 @@ def update_product(current_user, product_id):
         for img in current_images - set(existing_images_order):
             os.remove(os.path.join("uploads/images", os.path.basename(img)))
             cursor.execute("DELETE FROM product_images WHERE product_id = %s AND image_url = %s", (product_id, img))
+            logger.info(f"Image(s) {img} removed for product due to update \"{name}\" by user \"{current_user['username']}\".")
 
         # Update sort_order for remaining images
         for index, image_url in enumerate(existing_images_order):
@@ -251,6 +260,7 @@ def update_product(current_user, product_id):
                 UPDATE product_images SET sort_order = %s
                 WHERE product_id = %s AND image_url = %s
             """, (index, product_id, image_url))
+            logger.info(f"Image sort order updated for product \"{name}\" by user \"{current_user['username']}\".")
     
     
     cursor.execute("SELECT COALESCE(MAX(sort_order), 0) FROM product_images WHERE product_id = %s", (product_id,))
@@ -269,11 +279,13 @@ def update_product(current_user, product_id):
         """, (product_id, path, next_sort_order))
         
         next_sort_order += 1  # increment for next image
+        logger.info(f"New image {filename} added for product \"{name}\" by user \"{current_user['username']}\".")
 
     db.commit()
+    logger.info(f"Product \"{name}\" updated successfully by user \"{current_user['username']}\".")
     return jsonify({"message": "Product updated successfully"}), 200
 
-@products_bp.route('/admin/api/add_category', methods = ['POST'])
+@products_bp.route('/api/admin/api/add_category', methods = ['POST'])
 def add_category():
     db = get_db()
     cursor = db.cursor(dictionary=True)
@@ -281,6 +293,7 @@ def add_category():
     cat_name = request.form.get('name')
     
     cursor.execute("INSERT INTO category (name) VALUES (%s)", (cat_name,))
+    logger.info(f"New Category added! -- \"{cat_name}\"")
     db.commit()
     return jsonify({"message": "Category added successfully"}), 200
 
@@ -476,3 +489,15 @@ def delete_review(current_user, review_id):
     finally:
         cursor.close()
 
+        
+@products_bp.route("/api/products/<int:product_id>", methods=["GET"])
+def fetch_product(product_id):
+    db = get_db()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM products WHERE id = %s AND status = 'active'", (product_id,))
+    product = cursor.fetchone()
+
+    if not product:
+        return jsonify({"error": "Product not found or is inactive."}), 404
+    
+    return jsonify(product)

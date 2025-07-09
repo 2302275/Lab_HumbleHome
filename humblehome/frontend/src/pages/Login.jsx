@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { validateUsernameOrEmail } from "../components/validator"; // Import the validation function
 import toast from "react-hot-toast";
+import PropTypes from "prop-types";
 
 export default function Login({ setUser, fetchProfile }) {
   // Form Variables
@@ -21,27 +22,29 @@ export default function Login({ setUser, fetchProfile }) {
       return;
     }
 
-    const response = await fetch("http://localhost:5000/login", {
+    const response = await fetch("/api/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ login, password }),
+      body: JSON.stringify({ login, password, login_source: "user" }),
     });
     const data = await response.json();
 
     if (response.ok) {
-      if (data.user.role === "admin") {
-        toast.error("Login Failed.");
-        return;
+      if (data.token && data.user) {
+        // IP is trusted — direct login
+        localStorage.setItem("token", data.token);
+        setUser(data.user);
+        await fetchProfile();
+        navigate("/");
+      } else if (data.user_id) {
+        // IP is new — OTP triggered
+        sessionStorage.setItem("pending_2fa_user_id", data.user_id);
+        navigate("/verify-otp", { state: { user_id: data.user_id } });
+      } else {
+        toast.error("Unexpected login response.");
       }
-
-      console.log(data);
-      localStorage.setItem("token", data.token);
-      setUser(data.user);
-      setMessage({ text: "Login successful", type: "success" });
-      await fetchProfile(); // <-- fetch user from backend
-      navigate("/");
     } else {
-      setMessage({ text: data.message, type: "error" });
+      toast.error(data.message || "Login failed");
     }
   };
 
@@ -83,7 +86,7 @@ export default function Login({ setUser, fetchProfile }) {
         </form>
 
         <p className="text-center text-sm mt-6">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <a href="/register" className="text-black underline">
             Create one
           </a>
@@ -97,3 +100,9 @@ export default function Login({ setUser, fetchProfile }) {
     </div>
   );
 }
+
+Login.propTypes = {
+  setUser: PropTypes.func.isRequired,
+  fetchProfile: PropTypes.func.isRequired,
+};
+

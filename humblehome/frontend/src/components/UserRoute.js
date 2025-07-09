@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import PropTypes from "prop-types";
 
 const UserRoute = ({ user, loading, children }) => {
   if (loading) {
@@ -11,6 +12,14 @@ const UserRoute = ({ user, loading, children }) => {
     return <Navigate to="/" replace />;
   }
   return children;
+};
+
+UserRoute.propTypes = {
+  user: PropTypes.shape({
+    role: PropTypes.string.isRequired,
+  }),
+  loading: PropTypes.bool.isRequired,
+  children: PropTypes.node.isRequired,
 };
 
 export default UserRoute;

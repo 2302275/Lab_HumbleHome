@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import SearchBar from "../components/SearchBar";
 import { useRef } from "react";
+import PropTypes from "prop-types";
 
 const Header = ({ user, onLogout }) => {
   const [cartCount, setCartCount] = useState(0);
@@ -26,7 +27,7 @@ const Header = ({ user, onLogout }) => {
       const fetchResults = async () => {
         try {
           const res = await fetch(
-            `http://localhost:5000/api/search?q=${encodeURIComponent(query)}`
+            `/api/search?q=${encodeURIComponent(query)}`
           );
           const data = await res.json();
           setResults(data);
@@ -88,6 +89,9 @@ const Header = ({ user, onLogout }) => {
                 <Link to="/profile" className="text-accent hover:underline">
                   {user.username}
                 </Link>
+                <Link to="/contact" className="text-accent hover:underline">
+                  Contact
+                </Link>
                 <button
                   onClick={onLogout}
                   className="text-accent hover:underline"
@@ -122,6 +126,14 @@ const Header = ({ user, onLogout }) => {
       </div>
     </header>
   );
+};
+
+Header.propTypes = {
+  user: PropTypes.shape({
+    role: PropTypes.string.isRequired,
+    username: PropTypes.string.isRequired,
+  }),
+  onLogout: PropTypes.func.isRequired,
 };
 
 export default Header;

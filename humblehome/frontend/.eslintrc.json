@@ -1,0 +1,49 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:security-node/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": 12,
+    "sourceType": "module"
+  },
+  "plugins": [
+    "react",
+    "@typescript-eslint",
+    "security-node",
+    "no-unsanitized"
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "rules": {
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "security-node/detect-crlf": "off",
+    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-useless-escape": "warn",
+
+    "no-unsanitized/method": "error",
+    "no-unsanitized/property": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.js", "**/*.test.ts", "**/*.spec.js", "**/*.spec.ts"],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
+}

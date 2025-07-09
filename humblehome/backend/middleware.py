@@ -3,6 +3,7 @@ from functools import wraps
 import jwt
 from db import get_db
 import logging
+# logging for this yet to be done, not sure how to do it and what to add
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
@@ -27,12 +28,13 @@ def token_req(f):
             cursor.execute("SELECT * FROM users WHERE email = %s", (data['email'],))
             current_user = cursor.fetchone()
             if not current_user:
-                logger.warning("User not found for given token")
+                logger.error(f"Attempted access with invalid token or user not found. -- with email:{data['email']}")
                 return jsonify({'message':'User not found'}), 404
             
             return f(current_user, *args, **kwargs)
         except jwt.ExpiredSignatureError:
-            return jsonify({'message':'Token has expired.'}), 401
+            # Token Expired
+            return jsonify({'message':'Please log in again.'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'message':'Token is invalid.'}), 401
         

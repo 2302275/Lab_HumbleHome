@@ -73,10 +73,22 @@ export function validateImageTypeAndSize(file){
     
     // Check for file size
     if (file.size > maxSize) {
-        alert("Image must be smaller than 3MB.");
+        // alert("Image must be smaller than 3MB.");
         toast.error("File size exceeds the maximum limit of 3MB.");
         return false;
     }
     
     return true; // Valid
+}
+
+export function validatePassword(password) {
+    // At least 1 uppercase, 1 number, 1 special char, min 8 chars
+    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    if (!password) {
+        return "Password is required.";
+    }
+    if (!regex.test(password)) {
+        return "Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.";
+    }
+    return ""; // No error
 }
