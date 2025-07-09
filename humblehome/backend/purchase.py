@@ -5,11 +5,12 @@ from db import get_db
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequest
 from middleware import token_req
-import os
-import json
-import logging
+import os, json, logging, re
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
+
+def clean_text(text):
+    return re.sub(r'[<>]', '', text)
 
 purchases_bp = Blueprint('purchases', __name__)
 
@@ -147,10 +148,6 @@ def create_enquiry(current_user):
     if not (5 <= len(message) <= 1000):
         return jsonify({"error": "Invalid message length."}), 400
 
-    import re
-    def clean_text(text):
-        return re.sub(r'[<>]', '', text)
-
     subject = clean_text(subject)
     message = clean_text(message)
 
@@ -208,19 +205,23 @@ def get_user_enquiries(current_user):
 @token_req
 def reply_to_enquiry(current_user, enquiry_id):
     data = request.get_json()
-    message = data.get("message")
-    if not message:
-        return jsonify({"error": "Message required"}), 400
+    message = data.get("message", "").strip()
+
+    # Validate length
+    if len(message) < 5 or len(message) > 1000:
+        return jsonify({"error": "Message must be 5–1000 characters."}), 400
+
+    # Sanitize
+    safe_message = clean_text(message)
 
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
         "INSERT INTO enquiry_message (enquiry_id, sender_role, message) VALUES (%s, %s, %s)",
-        (enquiry_id, 'admin', message)
+        (enquiry_id, 'admin', safe_message)
     )
 
-    logger.info(f"User \"{current_user['username']}\" replied to enquiry ID: {enquiry_id}.")
-
+    logger.info(f"Admin \"{current_user['username']}\" replied to enquiry ID: {enquiry_id}.")
     db.commit()
     return jsonify({"message": "Reply sent"})
 
@@ -255,19 +256,23 @@ def get_all_enquiries(current_user):
 @token_req
 def reply_to_enquiry_user(current_user, enquiry_id):
     data = request.get_json()
-    message = data.get("message")
-    if not message:
-        return jsonify({"error": "Message required"}), 400
+    message = data.get("message", "").strip()
+
+    # Validate length
+    if len(message) < 5 or len(message) > 1000:
+        return jsonify({"error": "Message must be 5–1000 characters."}), 400
+
+    # Sanitize
+    safe_message = clean_text(message)
 
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
         "INSERT INTO enquiry_message (enquiry_id, sender_role, message) VALUES (%s, %s, %s)",
-        (enquiry_id, 'user', message)
+        (enquiry_id, 'user', safe_message)
     )
-    
+
     logger.info(f"User \"{current_user['username']}\" replied to enquiry ID: {enquiry_id}.")
-    
     db.commit()
     return jsonify({"message": "Reply sent"})
 

@@ -13,6 +13,11 @@ function AdminDashboard({ user, setUser }) {
   const [enquiries, setEnquiries] = useState([]);
   const [replyMessage, setReplyMessage] = useState("");
 
+  const sanitizeInput = (str) =>
+    str.replace(/[<>\/\\'"`]/g, "").trim();
+  const isValidMessage = (str) =>
+    str.length >= 5 && str.length <= 1000;
+
   //Modals states
   const [showEditModal, setShowEditModal] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -217,6 +222,13 @@ function AdminDashboard({ user, setUser }) {
   const handleReply = async (enquiryId) => {
     if (!replyMessage.trim()) return;
 
+    const cleanMessage = sanitizeInput(replyMessage || "");
+
+    if (!isValidMessage(cleanMessage)) {
+      toast.error("Message must be 5–1000 characters.");
+      return;
+    }
+
     try {
       const res = await fetch(`/api/enquiries/${enquiryId}/reply`, {
         method: "POST",
@@ -224,7 +236,7 @@ function AdminDashboard({ user, setUser }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ message: replyMessage }),
+        body: JSON.stringify({ message: cleanMessage }),
       });
 
       if (res.ok) {

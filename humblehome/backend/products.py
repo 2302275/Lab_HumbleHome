@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 import os
 import json
 import logging
+import re
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
@@ -345,12 +346,19 @@ def add_product_review(current_user, product_id):
             return jsonify({"error": "No data provided"}), 400
 
         rating = data.get('rating')
-        text = data.get('comment')  # Frontend still sends 'comment'
-        name = current_user.get('username')  # Get the user's name for insertion
+        text = data.get('comment', '').strip()
+        name = current_user.get('username')
 
         # Validate rating
         if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
             return jsonify({"error": "Rating must be between 1 and 5"}), 400
+
+        # Validate comment
+        if len(text) < 5 or len(text) > 500:
+            return jsonify({"error": "Comment must be 5–500 characters."}), 400
+
+        # Sanitize comment (basic: strip < >)
+        text = re.sub(r'[<>]', '', text)
 
         # Check if user already reviewed this product
         cursor.execute("""
@@ -361,7 +369,7 @@ def add_product_review(current_user, product_id):
         if cursor.fetchone():
             return jsonify({"error": "You have already reviewed this product"}), 400
 
-        # Insert new review including `name`
+        # Insert review
         cursor.execute("""
             INSERT INTO reviews (product_id, user_id, rating, `text`, name) 
             VALUES (%s, %s, %s, %s, %s)
@@ -379,6 +387,7 @@ def add_product_review(current_user, product_id):
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
+
 
 
 @products_bp.route('/api/products/<int:product_id>/reviews', methods=['GET'])
