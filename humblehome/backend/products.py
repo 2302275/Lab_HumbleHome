@@ -387,10 +387,9 @@ def get_product_reviews(product_id):
     cursor = db.cursor(dictionary=True)
 
     try:
-
         # Get pagination parameters from query string
         page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 5))  # Default to 5 reviews per page
+        per_page = int(request.args.get('per_page', 6))  # Default to 5 reviews per page
         offset = (page - 1) * per_page
 
         # Sorting Options
@@ -496,7 +495,12 @@ def fetch_product(product_id):
     cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT * FROM products WHERE id = %s AND status = 'active'", (product_id,))
     product = cursor.fetchone()
+    
+    cursor.execute("SELECT image_url FROM product_images WHERE product_id = %s", (product_id,))
+    images = cursor.fetchall()  # [{'image_url': 'path1'}, {'image_url': 'path2'}, ...]
 
+    product['images'] = [img['image_url'] for img in images]
+    
     if not product:
         return jsonify({"error": "Product not found or is inactive."}), 404
     

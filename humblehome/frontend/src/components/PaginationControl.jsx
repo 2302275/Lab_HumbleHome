@@ -1,4 +1,4 @@
-
+import PropTypes from "prop-types";
 
 const PaginationControls = ({ page, totalPages, onPageChange }) => {
   return (
@@ -24,6 +24,12 @@ const PaginationControls = ({ page, totalPages, onPageChange }) => {
       </button>
     </div>
   );
+};
+
+PaginationControls.propTypes = {
+  page: PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
 };
 
 export default PaginationControls;

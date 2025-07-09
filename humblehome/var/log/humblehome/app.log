@@ -275,3 +275,44 @@
 2025-07-08 07:33:00,777 INFO: create_app() called
 2025-07-08 07:33:01,342 INFO: create_app() called
 >>>>>>> Stashed changes
+2025-07-09 08:07:50,666 INFO: create_app() called
+2025-07-09 08:07:51,714 INFO: create_app() called
+2025-07-09 08:10:10,156 WARNING: Failed login attempt for "Jordan"
+2025-07-09 08:10:18,674 INFO: New account has been registered with email: jordanchanxj@gmail.com
+2025-07-09 08:10:23,651 WARNING: Failed login attempt for "Jordan"
+2025-07-09 08:10:28,642 WARNING: Failed login attempt for "Jordan"
+2025-07-09 08:10:35,229 INFO: 2FA code sent to jordanchanxj@gmail.com for login
+2025-07-09 08:10:47,772 INFO: User "Jordan" logged in successfully
+2025-07-09 08:14:21,198 INFO: Checkout initiated by "Jordan".
+2025-07-09 08:14:21,200 INFO: Order created for user "Jordan".
+2025-07-09 08:14:21,204 INFO: Order items added to "Jordan" order.
+2025-07-09 09:33:19,938 INFO: User "Jordan" logged in successfully
+2025-07-09 10:26:51,090 WARNING: Failed login attempt for "jordanchanxj@gmail.com"
+2025-07-09 10:26:54,843 INFO: User "Jordan" logged in successfully
+2025-07-09 10:29:01,785 INFO: create_app() called
+2025-07-09 10:29:02,280 INFO: create_app() called
+2025-07-09 11:32:36,269 INFO: User "Jordan" logged in successfully
+2025-07-09 13:27:14,712 INFO: User "Jordan" logged in successfully
+2025-07-09 17:32:55,220 INFO: create_app() called
+2025-07-09 17:32:55,974 INFO: create_app() called
+2025-07-09 17:33:41,478 INFO: User "Jordan" logged in successfully
+2025-07-09 17:36:52,033 INFO: Enquiry created by user "Jordan" with subject: Payment went through, but still pending payment
+2025-07-09 17:36:52,035 INFO: Message added to enquiry ID: 1 by user "Jordan"
+2025-07-09 17:38:20,965 INFO: Enquiry created by user "Jordan" with subject: 123
+2025-07-09 17:38:20,966 INFO: Message added to enquiry ID: 2 by user "Jordan"
+2025-07-09 17:38:23,194 INFO: Enquiry created by user "Jordan" with subject: 12313
+2025-07-09 17:38:23,195 INFO: Message added to enquiry ID: 3 by user "Jordan"
+2025-07-09 17:38:25,134 INFO: Enquiry created by user "Jordan" with subject: 124124
+2025-07-09 17:38:25,136 INFO: Message added to enquiry ID: 4 by user "Jordan"
+2025-07-09 17:38:26,996 INFO: Enquiry created by user "Jordan" with subject: 51221521521
+2025-07-09 17:38:26,996 INFO: Message added to enquiry ID: 5 by user "Jordan"
+2025-07-09 17:38:29,699 INFO: Enquiry created by user "Jordan" with subject: 124214
+2025-07-09 17:38:29,700 INFO: Message added to enquiry ID: 6 by user "Jordan"
+2025-07-09 17:39:14,352 INFO: Enquiry created by user "Jordan" with subject: 123
+2025-07-09 17:39:14,353 INFO: Message added to enquiry ID: 7 by user "Jordan"
+2025-07-09 18:02:07,146 INFO: create_app() called
+2025-07-09 18:02:07,927 INFO: create_app() called
+2025-07-09 18:06:14,616 INFO: create_app() called
+2025-07-09 18:06:15,113 INFO: create_app() called
+2025-07-09 18:07:47,262 INFO: create_app() called
+2025-07-09 18:07:47,794 INFO: create_app() called

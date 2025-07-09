@@ -112,12 +112,13 @@ export default function Payment({ user }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify(formData),
       });
 
       const data = await res.json();
-
+      console.log(data);
       if (!res.ok) {
         throw new Error(data.error || "Checkout failed.");
       }

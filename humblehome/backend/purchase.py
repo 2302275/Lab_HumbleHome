@@ -253,3 +253,30 @@ def reply_to_enquiry_user(current_user, enquiry_id):
     
     db.commit()
     return jsonify({"message": "Reply sent"})
+
+@purchases_bp.route('/api/products/<int:product_id>/purchased', methods=['GET'])
+@token_req
+def has_purchased(current_user, product_id):
+    db = get_db()
+    cur = db.cursor()
+    cur.execute("""
+        SELECT 1 FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        WHERE o.user_id = %s AND oi.product_id = %s
+        LIMIT 1
+    """, (current_user['user_id'], product_id))
+
+    purchased = cur.fetchone() is not None
+    return jsonify({"purchased": purchased})
+
+@purchases_bp.route("/api/products/<int:product_id>/reviews/my", methods=["GET"])
+@token_req
+def has_user_reviewed(current_user, product_id):
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "SELECT 1 FROM reviews WHERE user_id = %s AND product_id = %s",
+        (current_user["user_id"], product_id),
+    )
+    exists = cursor.fetchone() is not None
+    return jsonify({"reviewed": exists}), 200
