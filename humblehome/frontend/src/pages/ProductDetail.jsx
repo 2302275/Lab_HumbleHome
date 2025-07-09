@@ -44,6 +44,10 @@ export default function ProductDetail({ user }) {
     if (user?.role === "customer") checkPurchase();
   }, [id, user]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -300,6 +304,7 @@ export default function ProductDetail({ user }) {
                             className="space-y-4 mt-4"
                           >
                             <textarea
+                              autoFocus={false}
                               name="comment"
                               value={form.comment}
                               onChange={handleChange}
@@ -372,9 +377,7 @@ export default function ProductDetail({ user }) {
                                     </span>
                                   ))}
                                 </div>
-                                <p className="text-gray-800">
-                                  {review.text}
-                                </p>
+                                <p className="text-gray-800">{review.text}</p>
                               </li>
                             ))}
                           </ul>
@@ -439,14 +442,3 @@ ProductDetail.propTypes = {
     role: PropTypes.string.isRequired,
   }),
 };
-
-{
-  /* <textarea
-                              name="comment"
-                              placeholder="Write your review..."
-                              required
-                              className="w-full p-2 border rounded h-32"
-                              value={form.comment}
-                              onChange={handleChange}
-                            ></textarea> */
-}
