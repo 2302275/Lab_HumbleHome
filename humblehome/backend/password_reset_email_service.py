@@ -34,6 +34,7 @@ def forgot_password():
     if not user:
         # For security, don't reveal if email doesn't exist
         return jsonify({'message': 'If this email exists in our system, you will receive a password reset link'}), 200
+        # An email password reset link has been sent to your email address.
     
     # 2. Generate reset token and expiry
     reset_token = secrets.token_urlsafe(32)

@@ -256,5 +256,7 @@ def resend_otp():
     # Send OTP
     threading.Thread(target=send_otp_email, args=(user['email'], otp_code)).start()
 
+    logger.info(f"Resent OTP to \"{user['email']}\"")
+
     return jsonify({'message': 'OTP resent to your email'}), 200
 

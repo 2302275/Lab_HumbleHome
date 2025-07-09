@@ -4,8 +4,12 @@ from middleware import token_req
 from db import get_db
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import BadRequest
+from middleware import token_req
 import os
 import json
+import logging
+
+logger = logging.getLogger('humblehome_logger')  # Custom logger
 
 purchases_bp = Blueprint('purchases', __name__)
 
@@ -25,12 +29,14 @@ def is_valid_cart(cart):
 
 # TODO: Add to order_items & orders
 @purchases_bp.route('/api/checkout', methods=['POST'])
-def checkout():
+@token_req
+def checkout(current_user):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
     try:
         data = request.get_json(force=True)
+        logger.info(f"Checkout initiated by \"{current_user['username']}\".")
         customer_id = data.get("customer_id")
         cart = data.get("cart")
         shipping_address = data.get("shipping_address")
@@ -53,6 +59,7 @@ def checkout():
             VALUES (%s, NOW(), %s, %s, %s, %s)
         """, (customer_id, "pending", total_amount, shipping_address, payment_method))
 
+        logger.info(f"Order created for user \"{current_user['username']}\".")
         order_id = cursor.lastrowid
 
         for item in cart:
@@ -60,6 +67,8 @@ def checkout():
                 INSERT INTO order_items (order_id, product_id, quantity, price_at_purchase)
                 VALUES (%s, %s, %s, %s)
             """, (order_id, item["product_id"], item["quantity"], item["price"]))
+
+        logger.info(f"Order items added to \"{current_user['username']}\" order.")
 
         db.commit()
 
@@ -70,8 +79,10 @@ def checkout():
         }), 201
 
     except BadRequest as e:
+        logger.error(f"Checkout failed for user \"{current_user['username']}\": {str(e)}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        logger.error(f"Checkout error for user \"{current_user['username']}\": {str(e)}")
         db.rollback()
         return jsonify({"error": "Something went wrong during checkout"}), 500
 
@@ -134,6 +145,8 @@ def create_enquiry(current_user):
         data.get("subject"),
         data.get("message"),
     ))
+    
+    logger.info(f"Enquiry created by user \"{current_user['username']}\" with subject: {data.get('subject')}")
 
     enquiry_id = cursor.lastrowid
 
@@ -141,6 +154,8 @@ def create_enquiry(current_user):
         INSERT INTO enquiry_message (enquiry_id, sender_role, message, created_at)
         VALUES (%s, 'user', %s, NOW())
     """, (enquiry_id, data.get("message")))
+    
+    logger.info(f"Message added to enquiry ID: {enquiry_id} by user \"{current_user['username']}\"")
 
     db.commit()
 
@@ -186,6 +201,9 @@ def reply_to_enquiry(current_user, enquiry_id):
         "INSERT INTO enquiry_message (enquiry_id, sender_role, message) VALUES (%s, %s, %s)",
         (enquiry_id, 'admin', message)
     )
+
+    logger.info(f"User \"{current_user['username']}\" replied to enquiry ID: {enquiry_id}.")
+
     db.commit()
     return jsonify({"message": "Reply sent"})
 
@@ -212,6 +230,8 @@ def get_all_enquiries(current_user):
         """, (enquiry["enquiry_id"],))
         enquiry["messages"] = cursor.fetchall()
 
+    logger.info(f"User \"{current_user['username']}\" retrieved all enquiries. Total enquiries: {len(enquiries)}")
+
     return jsonify(enquiries)
 
 @purchases_bp.route("/api/enquiries/<int:enquiry_id>/userreply", methods=["POST"])
@@ -228,5 +248,8 @@ def reply_to_enquiry_user(current_user, enquiry_id):
         "INSERT INTO enquiry_message (enquiry_id, sender_role, message) VALUES (%s, %s, %s)",
         (enquiry_id, 'user', message)
     )
+    
+    logger.info(f"User \"{current_user['username']}\" replied to enquiry ID: {enquiry_id}.")
+    
     db.commit()
     return jsonify({"message": "Reply sent"})
