@@ -138,6 +138,7 @@
 2025-07-04 15:35:37,297 INFO: create_app() called
 2025-07-04 15:35:40,168 INFO: create_app() called
 2025-07-04 15:35:43,682 INFO: create_app() called
+<<<<<<< Updated upstream
 2025-07-06 13:03:17,047 INFO: create_app() called
 2025-07-06 13:03:17,613 INFO: create_app() called
 2025-07-06 13:42:12,940 INFO: create_app() called
@@ -160,6 +161,7 @@
 2025-07-06 14:17:46,079 WARNING: Failed login attempt for jordan
 2025-07-06 14:18:23,119 INFO: User "Jordan" initiated profile image upload
 2025-07-06 14:18:23,143 INFO: User "Jordan" uploaded a new profile image!
+<<<<<<< Updated upstream
 2025-07-08 13:42:32,268 INFO: create_app() called
 2025-07-08 13:42:32,905 INFO: create_app() called
 2025-07-08 13:45:45,654 INFO: create_app() called
@@ -253,3 +255,23 @@
 2025-07-08 18:27:11,747 INFO: create_app() called
 2025-07-08 18:27:36,746 INFO: create_app() called
 2025-07-08 18:27:37,296 INFO: create_app() called
+=======
+=======
+2025-07-04 15:41:37,189 INFO: create_app() called
+2025-07-04 15:41:37,776 INFO: create_app() called
+>>>>>>> Stashed changes
+2025-07-07 07:24:53,274 INFO: create_app() called
+2025-07-07 07:24:54,235 INFO: create_app() called
+2025-07-07 07:56:18,886 INFO: create_app() called
+2025-07-07 07:56:19,538 INFO: create_app() called
+2025-07-08 06:58:58,557 INFO: create_app() called
+2025-07-08 06:58:59,714 INFO: create_app() called
+2025-07-08 07:05:40,790 INFO: create_app() called
+2025-07-08 07:05:41,463 INFO: create_app() called
+2025-07-08 07:19:11,584 INFO: create_app() called
+2025-07-08 07:19:12,285 INFO: create_app() called
+2025-07-08 07:31:12,181 INFO: create_app() called
+2025-07-08 07:31:12,745 INFO: create_app() called
+2025-07-08 07:33:00,777 INFO: create_app() called
+2025-07-08 07:33:01,342 INFO: create_app() called
+>>>>>>> Stashed changes

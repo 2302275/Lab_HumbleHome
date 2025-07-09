@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from db import get_db
 from werkzeug.security import generate_password_hash
 import logging
+from auth import is_password_complex
 
 password_reset_bp = Blueprint('password_reset', __name__)
 
@@ -14,6 +15,11 @@ def reset_password():
     if not token or not new_password:
         return jsonify({'message': 'Token and new password are required', 'success': False}), 400
     
+    if not is_password_complex(new_password):
+        return jsonify({
+            'message': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.',
+            'success': False
+        }), 400
     
     db = get_db()
     cursor = db.cursor(dictionary=True)
