@@ -137,31 +137,46 @@ def create_enquiry(current_user):
     db = get_db()
     cursor = db.cursor()
 
+    subject = data.get("subject", "").strip()
+    message = data.get("message", "").strip()
+    product_id = data.get("product_id")
+    order_id = data.get("order_id")
+
+    if not (3 <= len(subject) <= 100):
+        return jsonify({"error": "Invalid subject length."}), 400
+    if not (5 <= len(message) <= 1000):
+        return jsonify({"error": "Invalid message length."}), 400
+
+    import re
+    def clean_text(text):
+        return re.sub(r'[<>]', '', text)
+
+    subject = clean_text(subject)
+    message = clean_text(message)
+
     cursor.execute("""
         INSERT INTO enquiries (user_id, product_id, order_id, subject, message, status, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, 'open', NOW(), NOW())
     """, (
         current_user['user_id'],
-        data.get("product_id"),
-        data.get("order_id"),
-        data.get("subject"),
-        data.get("message"),
+        product_id,
+        order_id,
+        subject,
+        message,
     ))
     
-    logger.info(f"Enquiry created by user \"{current_user['username']}\" with subject: {data.get('subject')}")
-
     enquiry_id = cursor.lastrowid
 
     cursor.execute("""
         INSERT INTO enquiry_message (enquiry_id, sender_role, message, created_at)
         VALUES (%s, 'user', %s, NOW())
-    """, (enquiry_id, data.get("message")))
-    
-    logger.info(f"Message added to enquiry ID: {enquiry_id} by user \"{current_user['username']}\"")
+    """, (enquiry_id, message))
 
+    logger.info(f"Enquiry created by user \"{current_user['username']}\" with subject: {subject}")
     db.commit()
 
     return jsonify({"message": "Enquiry submitted", "enquiry_id": enquiry_id}), 201
+
 
 @purchases_bp.route("/api/enquiries", methods=["GET"])
 @token_req
