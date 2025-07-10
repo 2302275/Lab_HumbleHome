@@ -23,10 +23,9 @@ jobs:
         run: docker compose up -d db backend frontend
         working-directory: humblehome
 
-      - name: Wait for Frontend
+      - name: Wait for Nginx (Frontend proxy)
         run: |
           echo "Waiting for http://localhost..."
-          sleep 15
           curl --retry 10 --retry-connrefused --retry-delay 3 http://localhost
 
       - name: Set up Python
