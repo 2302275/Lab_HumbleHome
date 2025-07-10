@@ -21,6 +21,11 @@ jobs:
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt install -y ./google-chrome-stable_current_amd64.deb
 
+      - name: Ensure log directory exists and has proper permissions
+        run: |
+          mkdir -p humblehome/var/log/humblehome
+          chmod -R 777 humblehome/var/log/humblehome
+
       # Setup Python and dependencies
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,17 +42,36 @@ jobs:
         run: docker compose up -d
         working-directory: humblehome
 
+      # Check container status (optional but useful)
+      - name: Show Docker containers status
+        run: docker compose ps
+        working-directory: humblehome
+
+      # Wait for app to be ready (curl retries localhost)
       - name: Wait for app to be ready
         run: |
           sleep 10
           curl --retry 10 --retry-connrefused --retry-delay 5 http://localhost
 
       # Run the test
-      - name: Run Selenium UI Tests
+      - name: Run Login/Register Tests
         run: python tests/selenium/ui_test.py
         working-directory: humblehome/backend
 
-      # Upload artifacts on failure
+      - name: Run Checkout Tests
+        run: python tests/selenium/checkout_test.py
+        working-directory: humblehome/backend
+
+      - name: Run Profile Update Tests
+        run: python tests/selenium/updated_profile_test.py
+        working-directory: humblehome/backend
+
+      # On failure, print logs and upload artifacts
+      - name: Show Docker Compose logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
+        working-directory: humblehome
+
       - name: Upload test artifacts
         if: failure()
         uses: actions/upload-artifact@v4

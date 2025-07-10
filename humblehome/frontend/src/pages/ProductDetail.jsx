@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import STLViewer from "../STLViewer";
 import toast from "react-hot-toast";
-import ReviewSlider from "../components/ReviewSlider";
 import PropTypes from "prop-types";
 
 export default function ProductDetail({ user }) {
@@ -88,7 +87,7 @@ export default function ProductDetail({ user }) {
   const fetchReviews = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${id}/reviews?page=${page}&per_page=${itemsPerPage}&sort=${sort}`
+        `http://localhost/api/products/${id}/reviews?page=${page}&per_page=${itemsPerPage}&sort=${sort}`
       );
       const data = await res.json();
 
@@ -153,7 +152,7 @@ export default function ProductDetail({ user }) {
   const fetchReviewStats = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${id}/reviews/stats`
+        `http://localhost/api/products/${id}/reviews/stats`
       );
       const data = await res.json();
       setReviewStats(data);
