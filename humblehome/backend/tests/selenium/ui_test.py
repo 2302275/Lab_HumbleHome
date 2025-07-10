@@ -17,7 +17,7 @@ driver = webdriver.Remote(
 
 try:
     # Your frontend runs at http://localhost:3000
-    driver.get("http://localhost:3000")
+    driver.get("http://localhost")
 
     time.sleep(2)  # wait for the page to load
 
