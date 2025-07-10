@@ -26,7 +26,7 @@ jobs:
         working-directory: humblehome
 
       - name: Wait for docker to start up
-        run: sleep 10
+        run: sleep 20
 
       # Run the test
       - name: Run Login/Register Tests
