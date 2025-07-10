@@ -44,7 +44,7 @@ jobs:
 
       # Run the test
       - name: Run Selenium UI Tests
-        run: python tests/selenium/create_activity_test.py
+        run: python tests/selenium/ui_test.py
         working-directory: humblehome/backend
 
       # Upload artifacts on failure

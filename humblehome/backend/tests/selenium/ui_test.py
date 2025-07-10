@@ -19,8 +19,7 @@ driver = webdriver.Chrome(
 )
 
 try:
-    # Access your app (adjust to match where it's hosted in CI or locally)
-    driver.get("http://localhost")  # or "http://nginx" if used in Docker Compose
+    driver.get("http://localhost")  
     time.sleep(2)
 
     assert "HumbleHome" in driver.title
