@@ -83,7 +83,7 @@ export function validateImageTypeAndSize(file){
 
 export function validatePassword(password) {
     // At least 1 uppercase, 1 number, 1 special char, min 8 chars
-    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>/?]).{8,}$/;
+    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
     if (!password) {
         return "Password is required.";
     }
