@@ -75,7 +75,7 @@ class EcommerceSiteTest(unittest.TestCase):
 
             # Wait for one of the expected URLs
             WebDriverWait(self.driver, 10).until(
-                lambda d: "/verify-otp" in d.current_url or "/" == d.current_url.split("/")[-1]
+                lambda d: d.execute_script("return localStorage.getItem('token') !== null")
             )
 
             # Assert that we're either on the home or OTP page
