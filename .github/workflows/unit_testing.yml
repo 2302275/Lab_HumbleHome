@@ -34,8 +34,14 @@ jobs:
 
       - name: Wait for Nginx (Frontend proxy)
         run: |
-          echo "Waiting for http://localhost..."
-          curl --retry 10 --retry-connrefused --retry-delay 3 http://localhost
+          for i in {1..30}; do
+            echo "⏳ Waiting for http://localhost ..."
+            if curl -sSf http://localhost > /dev/null; then
+              echo "✅ Nginx is up!"
+              break
+            fi
+            sleep 3
+          done
 
       - name: Show Nginx Logs
         if: failure()
