@@ -22,7 +22,7 @@ class EcommerceSiteTest(unittest.TestCase):
             service=Service(ChromeDriverManager().install()), options=options
         )
         cls.driver.implicitly_wait(10)
-        cls.base_url = "https://localhost"  
+        cls.base_url = "http://localhost"  
 
         cls.test_email = "newuser@example.com"
         cls.test_password = "NewUserPass123!"
