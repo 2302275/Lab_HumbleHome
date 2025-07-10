@@ -94,19 +94,40 @@ function AdminDashboard({ user, setUser }) {
     };
   }, [showModal, showEditModal, showAddCategoryModal]);
 
+  const validateImageFile = (file) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const maxSize = 3 * 1024 * 1024; // 3MB
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(`Invalid file type: ${file.name}`);
+      return false;
+    }
+
+    if (file.size > maxSize) {
+      toast.error(`File too large (max 3MB): ${file.name}`);
+      return false;
+    }
+
+    return true;
+  };
+
+
   const handleEditChange = (e) => {
     const { name, value, type, files } = e.target;
 
     if (type === "file" && name === "newImages") {
+      const validNewImages = Array.from(files).filter(validateImageFile);
       setEditProduct((prev) => ({
         ...prev,
-        newImages: [...prev.newImages, ...Array.from(files)],
+        newImages: [...prev.newImages, ...validNewImages],
       }));
     } else if (type === "file" && name === "thumbnail") {
-      setEditProduct((prev) => ({
-        ...prev,
-        thumbnail: files[0], // Single file for thumbnail
-      }));
+      if (validateImageFile(files[0])) {
+        setEditProduct((prev) => ({
+          ...prev,
+          thumbnail: files[0],
+        }));
+      }
     } else {
       setEditProduct((prev) => ({
         ...prev,
@@ -318,15 +339,13 @@ function AdminDashboard({ user, setUser }) {
     const { name, value, files } = e.target;
 
     if (name === "images") {
-      setFormData((prev) => ({
-        ...prev,
-        images: Array.from(files),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: files ? files[0] : value,
-      }));
+      const validFiles = Array.from(files).filter(validateImageFile);
+      setFormData((prev) => ({ ...prev, images: validFiles }));
+    }
+    if (name === "thumbnail") {
+      if (validateImageFile(files[0])) {
+        setFormData((prev) => ({ ...prev, thumbnail: files[0] }));
+      }
     }
   };
 

@@ -3,10 +3,13 @@ from functools import wraps
 from middleware import token_req
 from db import get_db
 from werkzeug.utils import secure_filename
+from PIL import Image, UnidentifiedImageError
 import os
 import json
 import logging
 import re
+
+MAX_IMAGE_SIZE = 3 * 1024 * 1024  # 3MB
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
@@ -32,6 +35,26 @@ def is_valid_stl(file_stream):
     except:
         return False
     
+def allowed_image_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+
+def validate_image_file(file):
+    # Check extension
+    if not allowed_image_file(file.filename):
+        return False, 'Invalid file extension'
+    # Check size
+    file.seek(0, os.SEEK_END)
+    if file.tell() > MAX_IMAGE_SIZE:
+        return False, 'File too large (max 3MB)'
+    file.seek(0)
+    # Check content
+    try:
+        with Image.open(file) as img:
+            img.verify()
+    except (UnidentifiedImageError, ValueError, OSError):
+        return False, 'Invalid or corrupted image file'
+    file.seek(0)
+    return True, None
 
 @products_bp.route('/api/uploads/images/<filename>')
 def serve_image_file(filename):
@@ -81,7 +104,19 @@ def add_product(current_user):
     model_filename = secure_filename(model_file.filename)
     model_path = os.path.join(upload_models_folder, model_filename)
     model_file.save(model_path)
-    
+
+    for image in image_files:
+        valid, error = validate_image_file(image)
+        if not valid:
+            return jsonify({'error': f'Image {image.filename}: {error}'}), 400
+        filename = secure_filename(image.filename)
+        image_path = os.path.join(upload_images_folder, filename)
+        image.save(image_path)
+
+    valid, error = validate_image_file(thumbnail_file)
+    if not valid:
+        return jsonify({'error': f'Thumbnail: {error}'}), 400
+
     # Save thumbnail image
     thumbnail_filename = f"thumb_{secure_filename(thumbnail_file.filename)}"
     thumbnail_path = os.path.join(upload_images_folder, thumbnail_filename)
@@ -231,6 +266,9 @@ def update_product(current_user, product_id):
         logger.info(f"Product \"{name}\" updated to category \"{category}\" by user \"{current_user['username']}\".")
 
     if thumbnail:
+        valid, error = validate_image_file(thumbnail)
+        if not valid:
+            return jsonify({'error': f'Thumbnail: {error}'}), 400
         thumbnail_filename = f"thumb_{secure_filename(thumbnail.filename)}"
         thumbnail_path = os.path.join("uploads/images", thumbnail_filename)
         thumbnail.save(thumbnail_path)
@@ -238,6 +276,7 @@ def update_product(current_user, product_id):
             "UPDATE products SET thumbnail_image = %s WHERE id = %s",
             (thumbnail_path, product_id)
         )
+
         logger.info(f"Thumbnail image updated for product \"{name}\" by user \"{current_user['username']}\".")
 
     if existing_images_order:
@@ -270,9 +309,14 @@ def update_product(current_user, product_id):
 
     # Add New Images
     for image in new_images:
+        valid, error = validate_image_file(image)
+        if not valid:
+            return jsonify({'error': f'New image {image.filename}: {error}'}), 400
+
         filename = secure_filename(image.filename)
         path = os.path.join("uploads/images", filename)
         image.save(path)
+
         
         cursor.execute("""
             INSERT INTO product_images (product_id, image_url, sort_order)
