@@ -23,13 +23,13 @@ def test_login_failure():
 def test_register_new_user():
     url = "http://localhost/api/register"
     payload = {
-        "username": "newuser123456",
-        "email": "newuser1234563@example.com",
+        "username": "newuser12345612312321",
+        "email": "newuser123456312321321@example.com",
         "password": "NewUserPass1234!",
     }
 
     response = requests.post(url, json=payload)
-    print("Response:", response.json())  # This shows the actual error message
+    print("Response:", response.json())  
 
 
 def test_register_new_user_existing_email():
