@@ -36,7 +36,7 @@ function Profile({ user, setUser }) {
       if (tab === "myreviews") {
         try {
           const res = await authenticatedFetch(
-            `http://localhost:5000/my-reviews?page=${page}&per_page=${itemsPerPage}`,
+            `/my-reviews?page=${page}&per_page=${itemsPerPage}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -139,7 +139,7 @@ function Profile({ user, setUser }) {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
 
     try {
-      const res = await authenticatedFetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+      const res = await authenticatedFetch(`/api/reviews/${reviewId}`, {
         method: "DELETE",
       });
       if (res.ok) {

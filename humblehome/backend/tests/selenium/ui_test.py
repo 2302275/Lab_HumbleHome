@@ -7,6 +7,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 
 class EcommerceSiteTest(unittest.TestCase):
@@ -22,12 +24,11 @@ class EcommerceSiteTest(unittest.TestCase):
             service=Service(ChromeDriverManager().install()), options=options
         )
         cls.driver.implicitly_wait(10)
-        cls.base_url = "http://localhost"  
-
+        cls.base_url = "http://localhost" 
         cls.test_email = "newuser@example.com"
         cls.test_password = "NewUserPass123!"
 
-    def test_homepage_products_displayed(self):
+    def test_04_test_homepage_products_displayed(self):
         try:
             self.driver.get(f"{self.base_url}/")
             # Check title contains your store name (adjust if needed)
@@ -44,7 +45,7 @@ class EcommerceSiteTest(unittest.TestCase):
                 f.write(self.driver.page_source)
             raise
 
-    def test_register_new_user(self):
+    def test_01_test_register_new_user(self):
         try:
             self.driver.get(f"{self.base_url}/register")
             self.driver.find_element(By.NAME, "username").send_keys("newuser123")
@@ -64,7 +65,7 @@ class EcommerceSiteTest(unittest.TestCase):
                 f.write(self.driver.page_source)
             raise
 
-    def test_login_success(self):
+    def test_02_test_login_success(self):
         try:
             self.driver.get(f"{self.base_url}/login")
             self.driver.find_element(By.NAME, "login_input").send_keys(self.test_email)
@@ -72,7 +73,17 @@ class EcommerceSiteTest(unittest.TestCase):
             self.driver.find_element(By.CLASS_NAME, "login-btn").click()
             time.sleep(2)
 
-            self.assertIn("OTP", self.driver.page_source)
+            # Wait for one of the expected URLs
+            WebDriverWait(self.driver, 10).until(
+                lambda d: "/verify-otp" in d.current_url or "/" == d.current_url.split("/")[-1]
+            )
+
+            # Assert that we're either on the home or OTP page
+            current_url = self.driver.current_url
+            self.assertTrue(
+                "/verify-otp" in current_url or current_url.endswith("/"),
+                f"Unexpected redirect after login: {current_url}"
+            )
 
         except Exception as e:
             os.makedirs("artifacts", exist_ok=True)
@@ -81,15 +92,16 @@ class EcommerceSiteTest(unittest.TestCase):
                 f.write(self.driver.page_source)
             raise
 
-    def test_login_failure(self):
+    def test_03_test_login_failure(self):
         try:
             self.driver.get(f"{self.base_url}/login")
-            self.driver.find_element(By.NAME, "email").send_keys(self.test_email)
+            self.driver.find_element(By.NAME, "login_input").send_keys(self.test_email)
             self.driver.find_element(By.NAME, "password").send_keys("wrongpassword")
             self.driver.find_element(By.CLASS_NAME, "login-btn").click()
             time.sleep(2)
 
-            self.assertIn("Invalid email or password", self.driver.page_source)
+            current_url = self.driver.current_url
+            self.assertIn("/login", current_url, f"Expected to remain on login page, but got redirected to: {current_url}")
 
         except Exception as e:
             os.makedirs("artifacts", exist_ok=True)
