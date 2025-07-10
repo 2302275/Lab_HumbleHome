@@ -1,78 +1,35 @@
-name: UI Integration Tests
-
-on:
-  push:
-    branches: [main]
-  pull_request:
 jobs:
   selenium-test:
     runs-on: ubuntu-latest
+
+    services:
+      selenium:
+        image: selenium/standalone-chrome:latest
+        ports:
+          - 4444:4444
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Chrome and ChromeDriver
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-          sudo apt-get install -y chromium-browser chromium-chromedriver
-          which chromedriver
-
-      - name: Install Google Chrome stable
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
-      - name: Ensure log directory exists and has proper permissions
-        run: |
-          mkdir -p humblehome/var/log/humblehome
-          chmod -R 777 humblehome/var/log/humblehome
-
-      - name: Build and Start App Services
+      # Build and run your app containers
+      - name: Build and start app services
         run: docker compose up -d
         working-directory: humblehome
 
-      - name: Debug Running Containers
-        run: docker ps -a
-        working-directory: humblehome
+      # Wait for your app to be ready (Nginx etc)
+      - name: Wait for app to be up
+        run: curl --retry 10 --retry-connrefused --retry-delay 3 http://localhost
 
-      - name: Wait for Nginx (Frontend proxy)
-        run: |
-          echo "Waiting for http://localhost..."
-          curl --retry 10 --retry-connrefused --retry-delay 3 http://localhost
-
-      - name: Show Nginx Logs
-        if: failure()
-        run: docker compose logs nginx
-        working-directory: humblehome
-
-      - name: Frontend Logs
-        if: failure()
-        run: docker compose logs frontend
-        working-directory: humblehome
-
-      - name: Backend Logs
-        run: docker compose logs backend
-        working-directory: humblehome
-
-      - name: Set up Python
+      # Install python deps
+      - name: Setup python and install deps
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: 3.11
+      - run: pip install -r humblehome/backend/requirements.txt
+      - run: pip install chromedriver-autoinstaller
 
-      - name: Install Python Dependencies
-        working-directory: humblehome/backend
-        run: |
-          pip install -r requirements.txt || pip install selenium  # fallback
-
+      # Run your Selenium test, which must connect to 'selenium:4444'!
       - name: Run Selenium UI Test
         working-directory: humblehome/backend
         run: python tests/selenium/ui_test.py
-
-      - name: Shut down services
-        if: always()
-        run: docker compose down
-        working-directory: humblehome
