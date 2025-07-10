@@ -14,7 +14,7 @@ jobs:
         run: |
           docker compose up --build -d
         working-directory: humblehome
-          
+
       - name: Wait for docker to start up
         run: sleep 10
 
@@ -24,15 +24,18 @@ jobs:
           grep "<title>React App</title>" response.html
 
       - name: Stop Docker Containers
-        run: docker compose down 
+        run: docker compose down
         working-directory: humblehome
-
 
   dependency-checker:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Install NPM Dependencies
+        run: npm install
+        working-directory: humblehome/frontend
 
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -48,14 +51,13 @@ jobs:
           name: Dependency-Check-Report
           path: dependency-check-report
 
-
   sonarqube:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
