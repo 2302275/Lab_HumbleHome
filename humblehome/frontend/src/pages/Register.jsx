@@ -106,7 +106,7 @@ function Register() {
 
           <button
             type="submit"
-            className={`w-full py-2 rounded-md text-white font-semibold transition bg-orange-500 hover:bg-orange-600`}
+            className={`register-btn w-full py-2 rounded-md text-white font-semibold transition bg-orange-500 hover:bg-orange-600`}
           >
             Create an Account
           </button>
