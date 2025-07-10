@@ -5,14 +5,14 @@ from werkzeug.exceptions import BadRequest
 import logging
 import re
 
-logger = logging.getLogger('humblehome_logger')  # Custom logger
+logger = logging.getLogger("humblehome_logger")  # Custom logger
 
 
 def clean_text(text):
-    return re.sub(r'[<>]', '', text)
+    return re.sub(r"[<>]", "", text)
 
 
-purchases_bp = Blueprint('purchases', __name__)
+purchases_bp = Blueprint("purchases", __name__)
 
 
 def is_valid_cart(cart):
@@ -30,7 +30,7 @@ def is_valid_cart(cart):
     return True
 
 
-@purchases_bp.route('/api/checkout', methods=['POST'])
+@purchases_bp.route("/api/checkout", methods=["POST"])
 @token_req
 def checkout(current_user):
     db = get_db()
@@ -54,52 +54,68 @@ def checkout(current_user):
         if payment_method not in ["card", "paypal"]:
             raise BadRequest("Invalid payment method.")
 
-        total_amount = sum(item['quantity'] * item['price'] for item in cart)
+        total_amount = sum(item["quantity"] * item["price"] for item in cart)
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO orders (user_id, order_date, status, total_amount,
             shipping_address, payment_method)
             VALUES (%s, NOW(), %s, %s, %s, %s)
-        """, (user_id, "pending", total_amount, shipping_address, payment_method))
+        """,
+            (user_id, "pending", total_amount, shipping_address, payment_method),
+        )
 
         logger.info(f"Order created for user \"{current_user['username']}\".")
         order_id = cursor.lastrowid
 
         for item in cart:
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO order_items
                 (order_id, product_id, quantity, price_at_purchase)
                 VALUES (%s, %s, %s, %s)
-            """, (order_id, item["product_id"], item["quantity"], item["price"]))
+            """,
+                (order_id, item["product_id"], item["quantity"], item["price"]),
+            )
 
         logger.info(f"Order items added to \"{current_user['username']}\" order.")
 
         db.commit()
 
-        return jsonify({
-            "message": "Order placed successfully",
-            "order_id": order_id,
-            "total_amount": total_amount
-        }), 201
+        return (
+            jsonify(
+                {
+                    "message": "Order placed successfully",
+                    "order_id": order_id,
+                    "total_amount": total_amount,
+                }
+            ),
+            201,
+        )
 
     except BadRequest as e:
-        logger.error(f"""Checkout failed for user \"
-                     {current_user['username']}\": {str(e)}""")
+        logger.error(
+            f"""Checkout failed for user \"
+                     {current_user['username']}\": {str(e)}"""
+        )
         return jsonify({"error": str(e)}), 400
     except Exception as e:
-        logger.error(f"""Checkout error for user \"
-                     {current_user['username']}\": {str(e)}""")
+        logger.error(
+            f"""Checkout error for user \"
+                     {current_user['username']}\": {str(e)}"""
+        )
         db.rollback()
         return jsonify({"error": "Something went wrong during checkout"}), 500
 
 
-@purchases_bp.route('/api/purchase-history', methods=['GET'])
+@purchases_bp.route("/api/purchase-history", methods=["GET"])
 @token_req
 def get_purchase_history(current_user):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT o.order_id AS order_id, o.order_date, o.status, o.total_amount,
                oi.product_id, p.name AS product_name, oi.quantity, oi.price_at_purchase
         FROM orders o
@@ -107,7 +123,9 @@ def get_purchase_history(current_user):
         JOIN products p ON oi.product_id = p.id
         WHERE o.user_id = %s
         ORDER BY o.order_date DESC
-    """, (current_user['user_id'],))
+    """,
+        (current_user["user_id"],),
+    )
 
     rows = cursor.fetchall()
 
@@ -118,7 +136,7 @@ def get_purchase_history(current_user):
             "product_id": row["product_id"],
             "product_name": row["product_name"],
             "quantity": row["quantity"],
-            "price_at_purchase": float(row["price_at_purchase"])
+            "price_at_purchase": float(row["price_at_purchase"]),
         }
 
         if order_id not in orders:
@@ -127,7 +145,7 @@ def get_purchase_history(current_user):
                 "order_date": row["order_date"],
                 "status": row["status"],
                 "total_amount": float(row["total_amount"]),
-                "items": [item]
+                "items": [item],
             }
         else:
             orders[order_id]["items"].append(item)
@@ -155,26 +173,34 @@ def create_enquiry(current_user):
     subject = clean_text(subject)
     message = clean_text(message)
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO enquiries (user_id, product_id, order_id,
         subject, message, status, created_at, updated_at)
         VALUES (%s, %s, %s, %s, %s, 'open', NOW(), NOW())
-    """, (
-        current_user['user_id'],
-        product_id,
-        order_id,
-        subject,
-        message,
-    ))
+    """,
+        (
+            current_user["user_id"],
+            product_id,
+            order_id,
+            subject,
+            message,
+        ),
+    )
     enquiry_id = cursor.lastrowid
 
-    cursor.execute("""
+    cursor.execute(
+        """
         INSERT INTO enquiry_message (enquiry_id, sender_role, message, created_at)
         VALUES (%s, 'user', %s, NOW())
-    """, (enquiry_id, message))
+    """,
+        (enquiry_id, message),
+    )
 
-    logger.info(f"""Enquiry created by user \"{current_user['username']}\"
-                with subject: {subject}""")
+    logger.info(
+        f"""Enquiry created by user \"{current_user['username']}\"
+                with subject: {subject}"""
+    )
     db.commit()
 
     return jsonify({"message": "Enquiry submitted", "enquiry_id": enquiry_id}), 201
@@ -188,7 +214,7 @@ def get_user_enquiries(current_user):
 
     cursor.execute(
         "SELECT * FROM enquiries WHERE user_id = %s ORDER BY created_at DESC",
-        (current_user["user_id"],)
+        (current_user["user_id"],),
     )
     enquiries = cursor.fetchall()
 
@@ -200,7 +226,7 @@ def get_user_enquiries(current_user):
             AND message != %s
             ORDER BY created_at ASC
             """,
-            (enquiry["enquiry_id"], enquiry["message"])
+            (enquiry["enquiry_id"], enquiry["message"]),
         )
         enquiry["messages"] = cursor.fetchall()  # <- move this inside loop
 
@@ -225,11 +251,13 @@ def reply_to_enquiry(current_user, enquiry_id):
     cursor.execute(
         """INSERT INTO enquiry_message (enquiry_id, sender_role, message)
         VALUES (%s, %s, %s)""",
-        (enquiry_id, 'admin', safe_message)
+        (enquiry_id, "admin", safe_message),
     )
 
-    logger.info(f"""Admin \"{current_user['username']}\"
-                replied to enquiry ID: {enquiry_id}.""")
+    logger.info(
+        f"""Admin \"{current_user['username']}\"
+                replied to enquiry ID: {enquiry_id}."""
+    )
     db.commit()
     return jsonify({"message": "Reply sent"})
 
@@ -240,26 +268,33 @@ def get_all_enquiries(current_user):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT e.enquiry_id AS enquiry_id, e.subject, e.message
         AS initial_message, e.user_id, e.created_at, u.username
         FROM enquiries e
         JOIN users u ON u.user_id = e.user_id
         ORDER BY e.created_at DESC
-    """)
+    """
+    )
     enquiries = cursor.fetchall()
 
     for enquiry in enquiries:
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT message_id, sender_role, message, created_at
             FROM enquiry_message
             WHERE enquiry_id = %s
             ORDER BY created_at ASC
-        """, (enquiry["enquiry_id"],))
+        """,
+            (enquiry["enquiry_id"],),
+        )
         enquiry["messages"] = cursor.fetchall()
 
-    logger.info(f"""User \"{current_user['username']}\" retrieved all enquiries.
-                Total enquiries: {len(enquiries)}""")
+    logger.info(
+        f"""User \"{current_user['username']}\" retrieved all enquiries.
+                Total enquiries: {len(enquiries)}"""
+    )
 
     return jsonify(enquiries)
 
@@ -282,26 +317,31 @@ def reply_to_enquiry_user(current_user, enquiry_id):
     cursor.execute(
         """INSERT INTO enquiry_message (enquiry_id, sender_role, message)
         VALUES (%s, %s, %s)""",
-        (enquiry_id, 'user', safe_message)
+        (enquiry_id, "user", safe_message),
     )
 
-    logger.info(f"""User \"{current_user['username']}\"
-                replied to enquiry ID: {enquiry_id}.""")
+    logger.info(
+        f"""User \"{current_user['username']}\"
+                replied to enquiry ID: {enquiry_id}."""
+    )
     db.commit()
     return jsonify({"message": "Reply sent"})
 
 
-@purchases_bp.route('/api/products/<int:product_id>/purchased', methods=['GET'])
+@purchases_bp.route("/api/products/<int:product_id>/purchased", methods=["GET"])
 @token_req
 def has_purchased(current_user, product_id):
     db = get_db()
     cur = db.cursor()
-    cur.execute("""
+    cur.execute(
+        """
         SELECT 1 FROM orders o
         JOIN order_items oi ON o.id = oi.order_id
         WHERE o.user_id = %s AND oi.product_id = %s
         LIMIT 1
-    """, (current_user['user_id'], product_id))
+    """,
+        (current_user["user_id"], product_id),
+    )
 
     purchased = cur.fetchone() is not None
     return jsonify({"purchased": purchased})

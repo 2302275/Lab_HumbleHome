@@ -25,8 +25,8 @@ def create_app():
     app = Flask(__name__)
     # Handles reverse proxy headers for Flask
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
-    app.config['SECRET_KEY'] = 'supersecretkey'
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads', 'models')
+    app.config["SECRET_KEY"] = "supersecretkey"
+    app.config["UPLOAD_FOLDER"] = os.path.join(os.getcwd(), "uploads", "models")
 
     # setup_logging() # --> if called here, can see HTTP requests in the log file
     logger.info("create_app() called")
@@ -41,7 +41,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(purchases_bp)
-    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.teardown_appcontext(close_db)
     return app
 
@@ -51,7 +51,7 @@ if __name__ == "__main__":
         logger.info("Starting Flask app...")
         app = create_app()
         logger.info("Flask app started successfully.")
-        UPLOAD_FOLDER = 'uploads/models'
+        UPLOAD_FOLDER = "uploads/models"
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         app.run(host="0.0.0.0", port=5000)
         logger.info("Flask app ended/shutdown.")

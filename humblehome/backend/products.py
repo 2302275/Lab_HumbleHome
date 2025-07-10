@@ -7,22 +7,22 @@ import json
 import logging
 import re
 
-logger = logging.getLogger('humblehome_logger')  # Custom logger
-secretkey = 'supersecretkey'
-products_bp = Blueprint('products', __name__)
-ALLOWED_EXTENSIONS = {'stl'}
+logger = logging.getLogger("humblehome_logger")  # Custom logger
+secretkey = "supersecretkey"
+products_bp = Blueprint("products", __name__)
+ALLOWED_EXTENSIONS = {"stl"}
 
 
 def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 def is_valid_stl(file_stream):
     try:
-        header = file_stream.read(6).decode('ascii', errors='ignore')
+        header = file_stream.read(6).decode("ascii", errors="ignore")
         file_stream.seek(0)
 
-        if header.lower().startswith('solid'):
+        if header.lower().startswith("solid"):
             return True
 
         if len(file_stream.read()) >= 84:
@@ -34,29 +34,29 @@ def is_valid_stl(file_stream):
         return False
 
 
-@products_bp.route('/api/uploads/images/<filename>')
+@products_bp.route("/api/uploads/images/<filename>")
 def serve_image_file(filename):
-    return send_from_directory('uploads/images', filename)
+    return send_from_directory("uploads/images", filename)
 
 
-@products_bp.route('/api/uploads/models/<filename>')
+@products_bp.route("/api/uploads/models/<filename>")
 def serve_model_file(filename):
-    return send_from_directory('uploads/models', filename)
+    return send_from_directory("uploads/models", filename)
 
 
-@products_bp.route('/api/admin/add_product', methods=['POST'])
+@products_bp.route("/api/admin/add_product", methods=["POST"])
 @token_req
 def add_product(current_user):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    name = request.form.get('name')
-    price = request.form.get('price')
-    description = request.form.get('description')
-    category = request.form.get('category')
-    stock = request.form.get('stock')
-    model_file = request.files.get('model_file')
-    image_files = request.files.getlist('images')  # multiple images input
-    thumbnail_file = request.files.get('thumbnail')
+    name = request.form.get("name")
+    price = request.form.get("price")
+    description = request.form.get("description")
+    category = request.form.get("category")
+    stock = request.form.get("stock")
+    model_file = request.files.get("model_file")
+    image_files = request.files.getlist("images")  # multiple images input
+    thumbnail_file = request.files.get("thumbnail")
     upload_models_folder = "uploads/models"
     upload_images_folder = "uploads/images"
 
@@ -69,7 +69,7 @@ def add_product(current_user):
         return jsonify({"error": "Missing required fields"}), 400
 
     # Validate model file
-    if model_file.filename == '' or not allowed_file(model_file.filename):
+    if model_file.filename == "" or not allowed_file(model_file.filename):
         return jsonify({"error": "Invalid or missing model file"}), 400
 
     # Check STL file content
@@ -91,15 +91,17 @@ def add_product(current_user):
         """INSERT INTO products (name, model_file, price,
         description, stock, thumbnail_image)
         VALUES (%s, %s, %s, %s, %s, %s)""",
-        (name, model_path, price, description, stock, thumbnail_path)
+        (name, model_path, price, description, stock, thumbnail_path),
     )
-    logger.info(f"""New Product added! -- \"{name}\" by user
-                \"{current_user['username']}\"""")
+    logger.info(
+        f"""New Product added! -- \"{name}\" by user
+                \"{current_user['username']}\""""
+    )
     product_id = cursor.lastrowid
 
     # Save product images
     for i, image in enumerate(image_files):
-        if image and image.filename != '':
+        if image and image.filename != "":
             image_filename = f"{product_id}_{i}_" + secure_filename(image.filename)
             image_path = os.path.join(upload_images_folder, image_filename)
             image.save(image_path)
@@ -108,37 +110,50 @@ def add_product(current_user):
                 """INSERT INTO product_images (product_id, image_url,
                 alt_text, sort_order)
                 VALUES (%s, %s, %s, %s)""",
-                (product_id, image_path, image.filename, i)
+                (product_id, image_path, image.filename, i),
             )
-            logger.info(f"""Image {image_filename} uploaded for product
-                        \"{name}\" by user \"{current_user['username']}\".""")
+            logger.info(
+                f"""Image {image_filename} uploaded for product
+                        \"{name}\" by user \"{current_user['username']}\"."""
+            )
 
     cursor.execute("SELECT id from category WHERE name = %s", (category,))
-    cat_id = cursor.fetchone()['id']
+    cat_id = cursor.fetchone()["id"]
     if not cat_id:
         return jsonify({"error": "Invalid file format"}), 400
 
     # Insert into category_products
-    cursor.execute("""INSERT into category_products (product_id, category_id)
-                   VALUES (%s, %s)""", (product_id, cat_id))
-    logger.info(f"""Product \"{name}\" added to category \"{category}\"
-                by user \"{current_user['username']}\". """)
+    cursor.execute(
+        """INSERT into category_products (product_id, category_id)
+                   VALUES (%s, %s)""",
+        (product_id, cat_id),
+    )
+    logger.info(
+        f"""Product \"{name}\" added to category \"{category}\"
+                by user \"{current_user['username']}\". """
+    )
     db.commit()
 
-    return jsonify({
-        "message": "Product added successfully",
-        "product_id": product_id,
-        "thumbnail": thumbnail_path,
-        "model_file": model_path
-    }), 200
+    return (
+        jsonify(
+            {
+                "message": "Product added successfully",
+                "product_id": product_id,
+                "thumbnail": thumbnail_path,
+                "model_file": model_path,
+            }
+        ),
+        200,
+    )
 
 
-@products_bp.route('/api/products', methods=['get'])
+@products_bp.route("/api/products", methods=["get"])
 def get_products():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT
         p.*,
         ANY_VALUE(c.name) AS category,
@@ -148,24 +163,26 @@ def get_products():
         LEFT JOIN category c ON cp.category_id = c.id
         LEFT JOIN product_images pi ON p.id = pi.product_id
         GROUP BY p.id;
-    """)
+    """
+    )
     products = cursor.fetchall()
 
     for product in products:
-        if product['images']:
-            product['images'] = product['images'].split(',')
+        if product["images"]:
+            product["images"] = product["images"].split(",")
         else:
-            product['images'] = []
+            product["images"] = []
 
     return jsonify(products), 200
 
 
-@products_bp.route('/api/products/active', methods=['get'])
+@products_bp.route("/api/products/active", methods=["get"])
 def get_active_products():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT
         p.*,
         ANY_VALUE(c.name) AS category,
@@ -176,19 +193,20 @@ def get_active_products():
         LEFT JOIN product_images pi ON p.id = pi.product_id
         WHERE p.status = 'active'
         GROUP BY p.id
-    """)
+    """
+    )
     products = cursor.fetchall()
 
     for product in products:
-        if product['images']:
-            product['images'] = product['images'].split(',')
+        if product["images"]:
+            product["images"] = product["images"].split(",")
         else:
-            product['images'] = []
+            product["images"] = []
 
     return jsonify(products), 200
 
 
-@products_bp.route('/api/categories', methods=['GET'])
+@products_bp.route("/api/categories", methods=["GET"])
 def get_categories():
     db = get_db()
     cursor = db.cursor(dictionary=True)
@@ -198,23 +216,23 @@ def get_categories():
     return jsonify(categories), 200
 
 
-@products_bp.route('/api/admin/api/update_product/<int:product_id>', methods=['PUT'])
+@products_bp.route("/api/admin/api/update_product/<int:product_id>", methods=["PUT"])
 @token_req
 def update_product(current_user, product_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    name = request.form.get('name')
-    price = request.form.get('price')
-    description = request.form.get('description')
-    stock = request.form.get('stock')
-    status = request.form.get('status')
-    category = request.form.get('category')
-    thumbnail = request.files.get('thumbnail')
+    name = request.form.get("name")
+    price = request.form.get("price")
+    description = request.form.get("description")
+    stock = request.form.get("stock")
+    status = request.form.get("status")
+    category = request.form.get("category")
+    thumbnail = request.files.get("thumbnail")
 
     # Images
-    existing_images_order = request.form.get('existing_images_order')
-    new_images = request.files.getlist('images')  # List of new images
+    existing_images_order = request.form.get("existing_images_order")
+    new_images = request.files.getlist("images")  # List of new images
 
     fields = []
     values = []
@@ -242,10 +260,12 @@ def update_product(current_user, product_id):
     if fields:
         values.append(product_id)
         cursor.execute(f"UPDATE products SET {', '.join(fields)} WHERE id = %s", values)
-        logger.info(f"""Product \"{name}\"details updated by user
+        logger.info(
+            f"""Product \"{name}\"details updated by user
                     \"{current_user['username']}\".
                     -- Fields Updated:
-                    {', '.join(fields)}""")
+                    {', '.join(fields)}"""
+        )
 
     # Category update
     if category:
@@ -253,15 +273,22 @@ def update_product(current_user, product_id):
         cat = cursor.fetchone()
         if not cat:
             return jsonify({"error": "Category not found"}), 404
-        cat_id = cat['id']
-        cursor.execute("""DELETE FROM category_products
+        cat_id = cat["id"]
+        cursor.execute(
+            """DELETE FROM category_products
                        WHERE product_id = %s""",
-                       (product_id,))
-        cursor.execute("""INSERT INTO category_products
+            (product_id,),
+        )
+        cursor.execute(
+            """INSERT INTO category_products
                        (product_id, category_id)
-                       VALUES (%s, %s)""", (product_id, cat_id))
-        logger.info(f"""Product \"{name}\" updated to category \"{category}\"
-                    by user \"{current_user['username']}\".""")
+                       VALUES (%s, %s)""",
+            (product_id, cat_id),
+        )
+        logger.info(
+            f"""Product \"{name}\" updated to category \"{category}\"
+                    by user \"{current_user['username']}\"."""
+        )
 
     if thumbnail:
         thumbnail_filename = f"thumb_{secure_filename(thumbnail.filename)}"
@@ -269,10 +296,12 @@ def update_product(current_user, product_id):
         thumbnail.save(thumbnail_path)
         cursor.execute(
             "UPDATE products SET thumbnail_image = %s WHERE id = %s",
-            (thumbnail_path, product_id)
+            (thumbnail_path, product_id),
         )
-        logger.info(f"""Thumbnail image updated for product \"{name}\"
-                    by user \"{current_user['username']}\".""")
+        logger.info(
+            f"""Thumbnail image updated for product \"{name}\"
+                    by user \"{current_user['username']}\"."""
+        )
 
     if existing_images_order:
         try:
@@ -280,34 +309,48 @@ def update_product(current_user, product_id):
         except json.JSONDecodeError:
             return jsonify({"error": "Invalid image order JSON"}), 400
 
-        cursor.execute("""SELECT image_url FROM product_images
+        cursor.execute(
+            """SELECT image_url FROM product_images
                        WHERE product_id = %s""",
-                       (product_id,))
-        current_images = {img['image_url'] for img in cursor.fetchall()}
+            (product_id,),
+        )
+        current_images = {img["image_url"] for img in cursor.fetchall()}
 
         # Delete images not in the updated list
         for img in current_images - set(existing_images_order):
             os.remove(os.path.join("uploads/images", os.path.basename(img)))
-            cursor.execute("""DELETE FROM product_images WHERE product_id = %s
-                           AND image_url = %s""", (product_id, img))
-            logger.info(f"""Image(s) {img} removed for product due to update \"{name}\"
-                        by user \"{current_user['username']}\".""")
+            cursor.execute(
+                """DELETE FROM product_images WHERE product_id = %s
+                           AND image_url = %s""",
+                (product_id, img),
+            )
+            logger.info(
+                f"""Image(s) {img} removed for product due to update \"{name}\"
+                        by user \"{current_user['username']}\"."""
+            )
 
         # Update sort_order for remaining images
         for index, image_url in enumerate(existing_images_order):
-            cursor.execute("""
+            cursor.execute(
+                """
                 UPDATE product_images SET sort_order = %s
                 WHERE product_id = %s AND image_url = %s
-            """, (index, product_id, image_url))
-            logger.info(f"""Image sort order updated for product \"{name}\"
-                        by user \"{current_user['username']}\".""")
+            """,
+                (index, product_id, image_url),
+            )
+            logger.info(
+                f"""Image sort order updated for product \"{name}\"
+                        by user \"{current_user['username']}\"."""
+            )
 
-    cursor.execute("""SELECT COALESCE(MAX(sort_order), 0) FROM product_images
+    cursor.execute(
+        """SELECT COALESCE(MAX(sort_order), 0) FROM product_images
                    WHERE product_id = %s""",
-                   (product_id,))
+        (product_id,),
+    )
     max_sort_order = cursor.fetchone()
     next_sort_order = max_sort_order["""COALESCE(MAX(sort_order), 0)"""]
-    + 1 if max_sort_order else 1
+    +1 if max_sort_order else 1
 
     # Add New Images
     for image in new_images:
@@ -315,51 +358,60 @@ def update_product(current_user, product_id):
         path = os.path.join("uploads/images", filename)
         image.save(path)
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO product_images (product_id, image_url, sort_order)
             VALUES (%s, %s, %s)
-        """, (product_id, path, next_sort_order))
+        """,
+            (product_id, path, next_sort_order),
+        )
 
         next_sort_order += 1  # increment for next image
-        logger.info(f"""New image {filename} added for product \"{name}\"
-                    by user \"{current_user['username']}\".""")
+        logger.info(
+            f"""New image {filename} added for product \"{name}\"
+                    by user \"{current_user['username']}\"."""
+        )
 
     db.commit()
-    logger.info(f"""Product \"{name}\" updated successfully by user
-                \"{current_user['username']}\".""")
+    logger.info(
+        f"""Product \"{name}\" updated successfully by user
+                \"{current_user['username']}\"."""
+    )
     return jsonify({"message": "Product updated successfully"}), 200
 
 
-@products_bp.route('/api/admin/api/add_category', methods=['POST'])
+@products_bp.route("/api/admin/api/add_category", methods=["POST"])
 def add_category():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    cat_name = request.form.get('name')
+    cat_name = request.form.get("name")
     cursor.execute("INSERT INTO category (name) VALUES (%s)", (cat_name,))
-    logger.info(f"New Category added! -- \"{cat_name}\"")
+    logger.info(f'New Category added! -- "{cat_name}"')
     db.commit()
     return jsonify({"message": "Category added successfully"}), 200
 
 
-@products_bp.route('/api/categories_with_count', methods=['GET'])
+@products_bp.route("/api/categories_with_count", methods=["GET"])
 def get_categories_with_count():
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT c.id, c.name, COUNT(cp.product_id) AS product_count
         FROM category c
         LEFT JOIN category_products cp ON c.id = cp.category_id
         GROUP BY c.id, c.name
         ORDER BY c.name
-    """)
+    """
+    )
     categories = cursor.fetchall()
     return jsonify(categories), 200
 
 
-@products_bp.route('/api/search', methods=['GET'])
+@products_bp.route("/api/search", methods=["GET"])
 def search():
-    query = request.args.get('q', '').strip()
+    query = request.args.get("q", "").strip()
 
     if not query:
         return jsonify([])
@@ -379,7 +431,7 @@ def search():
         db.close()
 
 
-@products_bp.route('/api/products/<int:product_id>/reviews', methods=['POST'])
+@products_bp.route("/api/products/<int:product_id>/reviews", methods=["POST"])
 @token_req
 def add_product_review(current_user, product_id):
     db = get_db()
@@ -390,9 +442,9 @@ def add_product_review(current_user, product_id):
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        rating = data.get('rating')
-        text = data.get('comment', '').strip()
-        name = current_user.get('username')
+        rating = data.get("rating")
+        text = data.get("comment", "").strip()
+        name = current_user.get("username")
 
         # Validate rating
         if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
@@ -403,29 +455,37 @@ def add_product_review(current_user, product_id):
             return jsonify({"error": "Comment must be 5–500 characters."}), 400
 
         # Sanitize comment (basic: strip < >)
-        text = re.sub(r'[<>]', '', text)
+        text = re.sub(r"[<>]", "", text)
 
         # Check if user already reviewed this product
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT id FROM reviews
             WHERE product_id = %s AND user_id = %s
-        """, (product_id, current_user['user_id']))
+        """,
+            (product_id, current_user["user_id"]),
+        )
 
         if cursor.fetchone():
             return jsonify({"error": "You have already reviewed this product"}), 400
 
         # Insert review
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO reviews (product_id, user_id, rating, `text`, name)
             VALUES (%s, %s, %s, %s, %s)
-        """, (product_id, current_user['user_id'], rating, text, name))
+        """,
+            (product_id, current_user["user_id"], rating, text, name),
+        )
 
         db.commit()
 
-        return jsonify({
-            "message": "Review added successfully",
-            "review_id": cursor.lastrowid
-        }), 201
+        return (
+            jsonify(
+                {"message": "Review added successfully", "review_id": cursor.lastrowid}
+            ),
+            201,
+        )
 
     except Exception as e:
         db.rollback()
@@ -434,26 +494,27 @@ def add_product_review(current_user, product_id):
         cursor.close()
 
 
-@products_bp.route('/api/products/<int:product_id>/reviews', methods=['GET'])
+@products_bp.route("/api/products/<int:product_id>/reviews", methods=["GET"])
 def get_product_reviews(product_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
     try:
         # Get pagination parameters from query string
-        page = int(request.args.get('page', 1))
-        per_page = int(request.args.get('per_page', 6))  # Default to 5 reviews per page
+        page = int(request.args.get("page", 1))
+        per_page = int(request.args.get("per_page", 6))  # Default to 5 reviews per page
         offset = (page - 1) * per_page
 
         # Sorting Options
-        sort_by = request.args.get('sort', 'date')  # default = date
+        sort_by = request.args.get("sort", "date")  # default = date
         order_clause = "ORDER BY r.created_at DESC"
 
-        if sort_by == 'rating':
+        if sort_by == "rating":
             order_clause = "ORDER BY r.rating DESC"
 
         # Get reviews with user information
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT r.id, r.rating, r.`text`, r.created_at, r.name,
             u.username, u.profile_pic
             FROM reviews r
@@ -461,37 +522,48 @@ def get_product_reviews(product_id):
             WHERE r.product_id = %s
             {order_clause}
             LIMIT %s OFFSET %s
-        """, (product_id, per_page, offset))
+        """,
+            (product_id, per_page, offset),
+        )
         reviews = cursor.fetchall()
 
         # Get total number of reviews for pagination info
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT COUNT(*) as total_reviews FROM reviews WHERE product_id = %s
-        """, (product_id,))
-        total_reviews = cursor.fetchone()['total_reviews']
+        """,
+            (product_id,),
+        )
+        total_reviews = cursor.fetchone()["total_reviews"]
         total_pages = (total_reviews + per_page - 1) // per_page
 
-        return jsonify({
-            "reviews": reviews,
-            "total_reviews": total_reviews,
-            "page": page,
-            "per_page": per_page,
-            "total_pages": total_pages
-        }), 200
+        return (
+            jsonify(
+                {
+                    "reviews": reviews,
+                    "total_reviews": total_reviews,
+                    "page": page,
+                    "per_page": per_page,
+                    "total_pages": total_pages,
+                }
+            ),
+            200,
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
 
 
-@products_bp.route('/api/products/<int:product_id>/reviews/stats', methods=['GET'])
+@products_bp.route("/api/products/<int:product_id>/reviews/stats", methods=["GET"])
 def get_review_stats(product_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
 
     try:
         # Get review statistics
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT
                 COUNT(*) as total_reviews,
                 AVG(rating) as average_rating,
@@ -502,15 +574,17 @@ def get_review_stats(product_id):
                 SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as one_star
             FROM reviews
             WHERE product_id = %s
-        """, (product_id,))
+        """,
+            (product_id,),
+        )
 
         stats = cursor.fetchone()
 
-        if not stats['total_reviews']:
+        if not stats["total_reviews"]:
             return jsonify({"error": "No reviews found for this product"}), 404
 
         # Convert decimal to float for JSON serialization
-        stats['average_rating'] = float(stats['average_rating'])
+        stats["average_rating"] = float(stats["average_rating"])
 
         return jsonify(stats), 200
     except Exception as e:
@@ -519,7 +593,7 @@ def get_review_stats(product_id):
         cursor.close()
 
 
-@products_bp.route('/api/reviews/<int:review_id>', methods=['DELETE'])
+@products_bp.route("/api/reviews/<int:review_id>", methods=["DELETE"])
 @token_req
 def delete_review(current_user, review_id):
     db = get_db()
@@ -548,16 +622,20 @@ def delete_review(current_user, review_id):
 def fetch_product(product_id):
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    cursor.execute("""SELECT * FROM products WHERE id = %s
+    cursor.execute(
+        """SELECT * FROM products WHERE id = %s
                    AND status = 'active'""",
-                   (product_id,))
+        (product_id,),
+    )
     product = cursor.fetchone()
 
-    cursor.execute("""SELECT image_url FROM product_images
+    cursor.execute(
+        """SELECT image_url FROM product_images
                    WHERE product_id = %s""",
-                   (product_id,))
+        (product_id,),
+    )
     images = cursor.fetchall()  # [{'image_url': 'path1'}, {'image_url': 'path2'}, ...]
-    product['images'] = [img['image_url'] for img in images]
+    product["images"] = [img["image_url"] for img in images]
 
     if not product:
         return jsonify({"error": "Product not found or is inactive."}), 404

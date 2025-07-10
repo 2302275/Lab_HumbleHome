@@ -23,8 +23,7 @@ class CheckoutFlowTest(unittest.TestCase):
         options.add_argument("--disable-dev-shm-usage")
 
         cls.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=options
+            service=Service(ChromeDriverManager().install()), options=options
         )
         cls.driver.implicitly_wait(10)
         cls.base_url = "http://localhost"
@@ -105,8 +104,9 @@ class CheckoutFlowTest(unittest.TestCase):
             # 7. Confirm redirected to homepage or order success page
             current_url = self.driver.current_url
             self.assertIn(
-                "/", current_url,
-                f"Expected to be redirected to homepage, but got: {current_url}"
+                "/",
+                current_url,
+                f"Expected to be redirected to homepage, but got: {current_url}",
             )
 
         except Exception:

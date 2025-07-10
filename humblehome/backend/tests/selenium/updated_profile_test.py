@@ -21,8 +21,7 @@ class ProfileEditTest(unittest.TestCase):
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         cls.driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=options
+            service=Service(ChromeDriverManager().install()), options=options
         )
         cls.driver.implicitly_wait(10)
         cls.base_url = "http://localhost"
@@ -55,18 +54,20 @@ class ProfileEditTest(unittest.TestCase):
 
             # Step 3: Wait for profile section
             WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((
-                    By.XPATH,
-                    "//button[contains(text(), 'Update Info') and "
-                    "contains(@class, 'text-orange-600')]"
-                ))
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        "//button[contains(text(), 'Update Info') and "
+                        "contains(@class, 'text-orange-600')]",
+                    )
+                )
             )
 
             # Step 4: Update form fields
             for field, value in {
                 "fullname": "Test User Updated",
                 "phonenumber": "1234 5678",
-                "address": "123 Updated Address"
+                "address": "123 Updated Address",
             }.items():
                 input_element = self.driver.find_element(By.NAME, field)
                 input_element.clear()
@@ -74,8 +75,7 @@ class ProfileEditTest(unittest.TestCase):
 
             # Step 5: Submit form
             self.driver.find_element(
-                By.XPATH,
-                "//button[contains(text(),'Update Profile')]"
+                By.XPATH, "//button[contains(text(),'Update Profile')]"
             ).click()
             time.sleep(2)
 
@@ -87,15 +87,15 @@ class ProfileEditTest(unittest.TestCase):
 
             self.assertEqual(
                 self.driver.find_element(By.NAME, "fullname").get_attribute("value"),
-                "Test User Updated"
+                "Test User Updated",
             )
             self.assertEqual(
                 self.driver.find_element(By.NAME, "phonenumber").get_attribute("value"),
-                "1234 5678"
+                "1234 5678",
             )
             self.assertEqual(
                 self.driver.find_element(By.NAME, "address").get_attribute("value"),
-                "123 Updated Address"
+                "123 Updated Address",
             )
 
         except Exception:
