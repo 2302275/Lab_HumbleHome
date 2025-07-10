@@ -85,6 +85,7 @@ function Register() {
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setUsername(e.target.value)}
             required
+            name = "username"
           />
           <input
             type="email"
@@ -92,6 +93,7 @@ function Register() {
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setEmail(e.target.value)}
             required
+            name = "email"
           />
           <input
             type="password"
@@ -99,31 +101,12 @@ function Register() {
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setPassword(e.target.value)}
             required
+            name="password"
           />
-          <div className="flex items-center text-sm">
-            <input
-              type="checkbox"
-              id="privacy"
-              checked={accepted}
-              onChange={(e) => setAccepted(e.target.checked)}
-              className="mr-2"
-            />
-            <label htmlFor="privacy">
-              I accept the{" "}
-              <a href="#" className="text-orange-600 underline">
-                Privacy Policy
-              </a>
-            </label>
-          </div>
 
           <button
             type="submit"
-            disabled={!accepted}
-            className={`w-full py-2 rounded-md text-white font-semibold transition ${
-              accepted
-                ? "bg-orange-500 hover:bg-orange-600"
-                : "bg-orange-300 cursor-not-allowed"
-            }`}
+            className={`w-full py-2 rounded-md text-white font-semibold transition bg-orange-500 hover:bg-orange-600`}
           >
             Create an Account
           </button>

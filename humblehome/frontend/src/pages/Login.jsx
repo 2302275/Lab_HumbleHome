@@ -68,17 +68,19 @@ export default function Login({ setUser, fetchProfile }) {
             value={login}
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setLogin(e.target.value)}
+            name = "login_input"
           />
           <input
             type="password"
             placeholder="Password"
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
             onChange={(e) => setPassword(e.target.value)}
+            name = "password"
           />
 
           <button
             type="submit"
-            className={`w-full py-2 rounded-md text-white font-semibold transition bg-orange-500 hover:bg-orange-600
+            className={`login-btn w-full py-2 rounded-md text-white font-semibold transition bg-orange-500 hover:bg-orange-600
                         `}
           >
             Login

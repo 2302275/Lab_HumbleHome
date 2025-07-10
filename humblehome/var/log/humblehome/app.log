@@ -299,3 +299,21 @@
 2025-07-10 03:55:00,258 INFO: create_app() called
 2025-07-10 03:57:25,231 INFO: create_app() called
 2025-07-10 03:57:26,158 INFO: create_app() called
+2025-07-10 07:46:42,965 INFO: create_app() called
+2025-07-10 07:46:43,464 INFO: create_app() called
+2025-07-10 07:49:00,303 WARNING: Failed login attempt for "jordanchanxj@gmail.com"
+2025-07-10 07:49:11,669 WARNING: Failed login attempt for "jordanchanxj@gmail.com"
+2025-07-10 07:49:12,336 WARNING: Failed login attempt for "jordanchanxj@gmail.com"
+2025-07-10 07:49:12,507 WARNING: Failed login attempt for "jordanchanxj@gmail.com"
+2025-07-10 07:49:25,051 WARNING: Failed login attempt for "jordanchanxj@gmail.com"
+2025-07-10 07:49:40,658 INFO: User "Jordan" logged in successfully
+2025-07-10 08:04:19,407 INFO: User "admin" logged in successfully
+2025-07-10 08:05:10,012 INFO: User "admin" logged out successfully
+2025-07-10 08:05:25,786 WARNING: Failed login attempt for "tester"
+2025-07-10 08:06:39,169 WARNING: Failed login attempt for "tester"
+2025-07-10 08:06:44,614 WARNING: Blocked admin login from user portal for "admin@admin.com"
+2025-07-10 08:10:29,308 INFO: New account has been registered with email: 123@123.com
+2025-07-10 08:13:24,016 WARNING: Failed login attempt for "123"
+2025-07-10 08:13:25,561 WARNING: Failed login attempt for "123"
+2025-07-10 08:13:29,255 WARNING: Failed login attempt for "123@123.com"
+2025-07-10 08:13:52,669 INFO: 2FA code sent to 123@123.com for login

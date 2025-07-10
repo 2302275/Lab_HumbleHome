@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 
 const ProductCard = ({ product }) => (
-  <Link to={`/product/${product.id}`} className="block">
+  <Link to={`/product/${product.id}`} className="block product-card">
     <div className="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition">
       <div className="relative">
         <img
