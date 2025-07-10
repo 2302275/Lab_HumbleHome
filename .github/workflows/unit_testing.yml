@@ -41,7 +41,7 @@ jobs:
           
 
       - name: Run Selenium UI Test
-        working-directory: ./backend
+        working-directory: humblehome/backend
         run: python tests/selenium/test_ui.py
 
       - name: Shut down services
