@@ -3,7 +3,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
-# Set Chrome to run headless (no window)
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
@@ -16,12 +15,14 @@ driver = webdriver.Remote(
 )
 
 try:
+    # 1. Open homepage
     driver.get("http://nginx")
+    time.sleep(2) 
+    assert "HumbleHome" in driver.title  # Adjust title accordingly
 
-    time.sleep(2)  # wait for the page to load
-
-    # Check the page title
-    assert "React App" in driver.title  # ← Change "React App" to match your actual title
+    # 2. Check products are displayed
+    products = driver.find_elements(By.CLASS_NAME, "product-card")  # update class if needed
+    assert len(products) > 0, "No products found"
 
     # Optional: find a heading
     h1 = driver.find_element(By.TAG_NAME, "h1")

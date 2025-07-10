@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+  services:
+    selenium:
+      image: selenium/standalone-chrome
+      ports:
+        - 4444:4444
+
 jobs:
   selenium-test:
     runs-on: ubuntu-latest
@@ -48,13 +54,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install Python Dependencies
         working-directory: humblehome/backend
         run: |
           pip install -r requirements.txt || pip install selenium  # fallback
-          
 
       - name: Run Selenium UI Test
         working-directory: humblehome/backend
