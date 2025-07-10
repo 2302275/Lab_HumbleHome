@@ -109,10 +109,11 @@ export default function Payment({ user }) {
     };
 
     try {
-      const res = await authenticatedFetch("/api/checkout", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
         },
         body: JSON.stringify(formData),
       });
