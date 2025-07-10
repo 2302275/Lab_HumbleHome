@@ -19,11 +19,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Start Docker Compose
-        run: docker-compose up -d db backend frontend
+      - name: Build and Start App Services
+        run: docker compose up -d db backend frontend
 
-      - name: Wait for services
+      - name: Wait for Frontend
         run: |
+          echo "Waiting for http://localhost:3000..."
           sleep 15
           curl --retry 10 --retry-connrefused --retry-delay 3 http://localhost:3000
 
@@ -32,11 +33,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Python dependencies
+      - name: Install Python Dependencies
         working-directory: ./backend
         run: |
-          pip install selenium
+          pip install -r requirements.txt || pip install selenium  # fallback
 
       - name: Run Selenium UI Test
         working-directory: ./backend
         run: python tests/selenium/test_ui.py
+
+      - name: Shut down services
+        if: always()
+        run: docker compose down
