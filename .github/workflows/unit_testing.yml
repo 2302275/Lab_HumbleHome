@@ -35,9 +35,10 @@ jobs:
           python-version: '3.11'
 
       - name: Install Python Dependencies
-        working-directory: ./backend
+        working-directory: humblehome/backend
         run: |
           pip install -r requirements.txt || pip install selenium  # fallback
+          
 
       - name: Run Selenium UI Test
         working-directory: ./backend
