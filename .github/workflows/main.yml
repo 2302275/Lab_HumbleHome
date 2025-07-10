@@ -20,8 +20,8 @@ jobs:
 
       - name: Test Index Page
         run: |
-          curl -s -o response.html http://localhost:3000/
-          grep "<title>React App</title>" response.html
+          curl -s -o response.html http://localhost/
+          grep "<title>HumbleHome</title>" response.html
 
       - name: Stop Docker Containers
         run: docker compose down
