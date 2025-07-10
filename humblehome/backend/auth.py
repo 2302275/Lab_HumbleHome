@@ -173,7 +173,7 @@ def logout(current_user):
     db = get_db()
     cursor = db.cursor()
     cursor.execute(
-        "INSERT INTO token_blacklist (token, user_id, expires_at, reason) VALUES (%s, %s, %s, %s)",
+        "INSERT INTO refresh_token_blacklist (token, user_id, expires_at, reason) VALUES (%s, %s, %s, %s)",
         (token, current_user['user_id'], expires_at, 'logout')
     )
     db.commit()
@@ -447,7 +447,7 @@ def refresh():
         # Check if blacklisted
         db = get_db()
         cursor = db.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM token_blacklist WHERE token = %s", (refresh_token,))
+        cursor.execute("SELECT * FROM refresh_token_blacklist WHERE token = %s", (refresh_token,))
         if cursor.fetchone():
             logger.warning(f"Attempted to use blacklisted refresh token")
             return jsonify({'message': 'Please log in again.'}), 401

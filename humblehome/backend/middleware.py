@@ -25,7 +25,7 @@ def token_req(f):
             # Check if token is blacklisted
             db = get_db()
             cursor = db.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM token_blacklist WHERE token = %s", (token,))
+            cursor.execute("SELECT * FROM refresh_token_blacklist WHERE token = %s", (token,))
             if cursor.fetchone():
                 logger.warning(f"Attempted use of blacklisted token")
                 return jsonify({'message':'Please log in again.'}), 401
