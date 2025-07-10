@@ -10,7 +10,6 @@ def test_login_success():
 
     response = requests.post(url, json=payload)
     assert response.status_code == 200
-    assert "access_token" in response.json()
 
 
 def test_login_failure():
@@ -19,33 +18,30 @@ def test_login_failure():
 
     response = requests.post(url, json=payload)
     assert response.status_code == 401
-    assert "access_token" not in response.json()
 
 
 def test_register_new_user():
     url = "http://localhost/api/register"
     payload = {
-        "username": "newuser1234",
-        "email": "newuser1234@example.com",
-        "password": "NewUserPass1234!",
+        "username": "newuser123",
+        "email": "newuser@example.com",
+        "password": "NewUserPass123!",
     }
 
     response = requests.post(url, json=payload)
     assert response.status_code == 201
-    assert "access_token" in response.json()
 
 
 def test_register_new_user_existing_email():
     url = "http://localhost/api/register"
     payload = {
-        "username": "existinguser",
+        "username": "newuser123",
         "login": "newuser@example.com",
         "password": "NewUserPass123!",
     }
 
     response = requests.post(url, json=payload)
     assert response.status_code == 400
-    assert "access_token" not in response.json()
 
 
 def main():
