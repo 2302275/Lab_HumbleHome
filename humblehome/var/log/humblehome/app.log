@@ -317,3 +317,27 @@
 2025-07-10 08:13:25,561 WARNING: Failed login attempt for "123"
 2025-07-10 08:13:29,255 WARNING: Failed login attempt for "123@123.com"
 2025-07-10 08:13:52,669 INFO: 2FA code sent to 123@123.com for login
+2025-07-10 08:44:08,760 WARNING: Failed login attempt for "newuser@example.com"
+2025-07-10 08:47:13,862 WARNING: Failed login attempt for "newuser@example.com"
+2025-07-10 08:47:16,147 WARNING: Failed login attempt for "newuser@example.com"
+2025-07-10 08:47:28,650 INFO: New account has been registered with email: newuser@example.com
+2025-07-10 08:50:24,075 WARNING: Failed login attempt for "newuser@example.com"
+2025-07-10 08:50:31,650 INFO: 2FA code sent to newuser@example.com for login
+2025-07-10 09:06:48,922 INFO: 2FA code sent to newuser@example.com for login
+2025-07-10 09:15:28,729 INFO: create_app() called
+2025-07-10 09:15:34,493 INFO: create_app() called
+2025-07-10 09:17:28,611 INFO: User "newuser123" logged in successfully
+2025-07-10 09:19:19,476 INFO: User "newuser123" logged in successfully
+2025-07-10 09:20:53,365 INFO: User "newuser123" logged in successfully
+2025-07-10 09:22:15,895 INFO: User "Jordan" logged in successfully
+2025-07-10 09:22:58,744 INFO: User "newuser123" logged in successfully
+2025-07-10 09:27:01,722 INFO: User "newuser123" logged in successfully
+2025-07-10 09:32:05,600 INFO: User "newuser123" logged in successfully
+2025-07-10 09:33:14,715 INFO: User "newuser123" logged in successfully
+2025-07-10 09:33:27,815 INFO: Checkout initiated by "newuser123".
+2025-07-10 09:33:28,154 INFO: Order created for user "newuser123".
+2025-07-10 09:33:28,338 INFO: Order items added to "newuser123" order.
+2025-07-10 09:34:02,846 INFO: User "newuser123" logged in successfully
+2025-07-10 09:34:15,390 INFO: Checkout initiated by "newuser123".
+2025-07-10 09:34:15,401 INFO: Order created for user "newuser123".
+2025-07-10 09:34:15,428 INFO: Order items added to "newuser123" order.
