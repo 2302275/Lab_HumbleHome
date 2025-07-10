@@ -56,11 +56,6 @@ services:
       - frontend
       - backend
 
-  selenium:
-    image: selenium/standalone-chrome
-    ports:
-      - "4444:4444"
-
 volumes:
   dbdata:
 

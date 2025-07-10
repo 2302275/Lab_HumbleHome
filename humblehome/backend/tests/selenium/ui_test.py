@@ -1,21 +1,28 @@
 import time
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
+# Setup Chrome options for headless CI use
 chrome_options = Options()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
-driver = webdriver.Remote(
-    command_executor='http://localhost:4444/wd/hub',  # connect to the local Selenium service
+# Start Chrome using webdriver-manager (no Selenium Grid needed)
+driver = webdriver.Chrome(
+    service=Service(ChromeDriverManager().install()),
     options=chrome_options
 )
 
 try:
-    driver.get("http://nginx")  # or "http://localhost" if your app is accessible on localhost
+    # Access your app (adjust to match where it's hosted in CI or locally)
+    driver.get("http://localhost")  # or "http://nginx" if used in Docker Compose
     time.sleep(2)
+
     assert "HumbleHome" in driver.title
 
     products = driver.find_elements(By.CLASS_NAME, "product-card")
@@ -26,7 +33,8 @@ try:
 
 except Exception as e:
     print("❌ Test failed:", e)
-    driver.save_screenshot("ui_test_error.png")
+    os.makedirs("artifacts", exist_ok=True)
+    driver.save_screenshot("artifacts/ui_test_error.png")
     raise
 
 finally:
