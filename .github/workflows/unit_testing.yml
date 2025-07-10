@@ -37,6 +37,11 @@ jobs:
         run: docker compose logs nginx
         working-directory: humblehome
 
+      - name: Frontend Logs
+        if: failure()
+        run: docker compose logs frontend
+        working-directory: humblehome
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
