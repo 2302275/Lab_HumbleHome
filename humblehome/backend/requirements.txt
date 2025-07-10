@@ -9,3 +9,4 @@ black
 Selenium
 chromedriver-autoinstaller
 requests
+dotenv

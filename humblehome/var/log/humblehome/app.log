@@ -299,6 +299,7 @@
 2025-07-10 03:55:00,258 INFO: create_app() called
 2025-07-10 03:57:25,231 INFO: create_app() called
 2025-07-10 03:57:26,158 INFO: create_app() called
+<<<<<<< Updated upstream
 2025-07-10 07:46:42,965 INFO: create_app() called
 2025-07-10 07:46:43,464 INFO: create_app() called
 2025-07-10 07:49:00,303 WARNING: Failed login attempt for "jordanchanxj@gmail.com"
@@ -374,3 +375,16 @@
                                                 INFO: create_app() called
 2025-07-10 19:14:44,258
                                                 INFO: create_app() called
+=======
+2025-07-10 03:59:47,968 INFO: create_app() called
+2025-07-10 03:59:48,576 INFO: create_app() called
+2025-07-10 04:01:19,207 WARNING: Failed login attempt for "altius"
+2025-07-10 04:01:21,209 WARNING: Failed login attempt for "altius"
+2025-07-10 04:02:02,839 INFO: 2FA code sent to altiuschua9@gmail.com for login
+2025-07-10 04:02:17,138 INFO: User "altius" logged in successfully
+2025-07-10 04:03:58,214 ERROR: User "altius" password change failed, password complexity not met
+2025-07-10 04:04:37,944 ERROR: User "altius" password change failed: Incorrect current password
+2025-07-10 04:04:49,287 INFO: User "altius" successfully changed their password
+2025-07-10 05:13:35,228 INFO: create_app() called
+2025-07-10 05:13:35,741 INFO: create_app() called
+>>>>>>> Stashed changes
