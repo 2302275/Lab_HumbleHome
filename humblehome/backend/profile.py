@@ -161,8 +161,8 @@ def change_password(current_user):
         logger.error(f"User \"{current_user['username']}\" password change failed: New passwords don't match")
         return jsonify({'error': 'New password and confirmation do not match'}), 400
     
-    if not is_password_complex:
-        logger.error(f"User \"{current_user['username']}\" password change failed")
+    if not is_password_complex(new_password):
+        logger.error(f"User \"{current_user['username']}\" password change failed, password complexity not met")
         return jsonify({'error': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.'}), 400
     
     db = get_db()
