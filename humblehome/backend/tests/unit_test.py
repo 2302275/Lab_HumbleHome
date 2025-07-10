@@ -36,7 +36,7 @@ def test_register_new_user_existing_email():
     url = "http://localhost/api/register"
     payload = {
         "username": "newuser123",
-        "login": "newuser@example.com",
+        "email": "newuser@example.com",
         "password": "NewUserPass123!",
     }
 
