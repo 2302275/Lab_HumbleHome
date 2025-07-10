@@ -6,11 +6,8 @@ from middleware import token_req
 import smtplib
 from email.mime.text import MIMEText
 import logging, threading
-<<<<<<< HEAD
 import os
 import uuid
-=======
->>>>>>> parent of 1313c46 (Secure Session Management)
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
@@ -24,6 +21,25 @@ FROM_EMAIL = 'noreply@yourdomain.com'
 
 # Configuration - should be in environment variables
 RESET_TOKEN_EXPIRY = 3600  # 1 hour in seconds
+
+def generate_tokens(user, secretkey):
+    # Short-lived access token (15 min)
+    access_token = jwt.encode({
+        'user_id': user['user_id'],
+        'email': user['email'],
+        'type': 'access',
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+    }, secretkey, algorithm='HS256')
+
+    # Long-lived refresh token (7 days)
+    refresh_token = jwt.encode({
+        'user_id': user['user_id'],
+        'type': 'refresh',
+        'jti': str(uuid.uuid4()),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
+    }, secretkey, algorithm='HS256')
+
+    return access_token, refresh_token
 
 def send_otp_email(recipient_email, otp_code):
     email_body = f"""
@@ -133,23 +149,11 @@ def login():
 
     otp_needed = not (IS_TEST_ENV or IS_TEST_USER or is_admin or same_ip)
 
-<<<<<<< HEAD
     # ───────────────────────────────────────────
     # 4‑A. NO OTP required  →  issue tokens now
     # ───────────────────────────────────────────
     if not otp_needed:
         access_token, refresh_token = generate_tokens(user, secretkey)
-=======
-        threading.Thread(target=send_otp_email, args=(user['email'], otp_code)).start()
-        return jsonify({'message': 'OTP sent to email', 'user_id': user['user_id']}), 200
-    else:
-        # IP matches — skip 2FA
-        token = jwt.encode(
-            {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-            secretkey,
-            algorithm='HS256'
-        )
->>>>>>> parent of 1313c46 (Secure Session Management)
 
         user_info = {
             "id":       user["user_id"],
@@ -159,7 +163,6 @@ def login():
             "profile_pic": user.get("profile_pic"),
         }
 
-<<<<<<< HEAD
         logger.info(
             f"{'[TEST MODE] ' if IS_TEST_ENV else ''}"
             f"User '{user['username']}' logged in without OTP"
@@ -195,16 +198,11 @@ def login():
     ), 200
 
 
-=======
-        logger.info(f"User \"{user['username']}\" logged in successfully")
-        return jsonify({'token': token, 'user': user_info}), 200
->>>>>>> parent of 1313c46 (Secure Session Management)
 
 
 @auth_bp.route('/api/logout', methods=['POST'])
 @token_req
 def logout(current_user):
-<<<<<<< HEAD
     token = request.headers.get('Authorization', '').split(' ')[1]
     
     try:
@@ -220,8 +218,6 @@ def logout(current_user):
     )
     db.commit()
     
-=======
->>>>>>> parent of 1313c46 (Secure Session Management)
     logger.info(f"User \"{current_user['username']}\" logged out successfully")
     return jsonify({'message': 'Logged out successfully.'}), 200
 
@@ -280,11 +276,8 @@ def verify_otp():
     # Issue final JWT
     cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
     user = cursor.fetchone()
-    token = jwt.encode(
-        {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-        secretkey,
-        algorithm='HS256'
-    )
+    
+    access_token, refresh_token = generate_tokens(user, secretkey)
 
     user_info = {
         'id': user['user_id'],
@@ -300,7 +293,7 @@ def verify_otp():
     
     logger.info(f"User \"{user['username']}\" logged in successfully")
 
-    return jsonify({'token': token, 'user': user_info}), 200
+    return jsonify({'access_token': access_token, 'refresh_token': refresh_token,'user': user_info}), 200
 
 @auth_bp.route('/api/resend-otp', methods=['POST', 'OPTIONS'])
 def resend_otp():
@@ -345,8 +338,8 @@ def reset_password():
     new_password = data.get('new_password')
     
     if not token or not new_password:
-        return jsonify({'message': 'Token and new password are required', 'success': False}), 400
-    
+        return jsonify({'message': 'New password is required', 'success': False}), 400
+
     if not is_password_complex(new_password):
         return jsonify({
             'message': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.',
@@ -470,7 +463,6 @@ def forgot_password():
         # Log this error properly
         return jsonify({'message': 'Failed to send reset email'}), 500
     
-<<<<<<< HEAD
     return jsonify({'message': 'Password reset link sent to your email'}), 200
 
 
@@ -525,6 +517,3 @@ def refresh():
     except jwt.InvalidTokenError:
         logger.warning(f"Invalid refresh token used")
         return jsonify({'message': 'Please log in again.'}), 401
-=======
-    return jsonify({'message': 'Password reset link sent to your email'}), 200
->>>>>>> parent of 1313c46 (Secure Session Management)
