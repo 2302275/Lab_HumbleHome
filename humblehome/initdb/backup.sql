@@ -1,6 +1,6 @@
 CREATE DATABASE  IF NOT EXISTS `humblehome` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `humblehome`;
--- MySQL dump 10.13  Distrib 8.0.34, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.36, for Win64 (x86_64)
 --
 -- Host: 127.0.0.1    Database: humblehome
 -- ------------------------------------------------------
@@ -152,7 +152,7 @@ CREATE TABLE `order_items` (
   KEY `product_id` (`product_id`),
   CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
   CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -161,7 +161,6 @@ CREATE TABLE `order_items` (
 
 LOCK TABLES `order_items` WRITE;
 /*!40000 ALTER TABLE `order_items` DISABLE KEYS */;
-INSERT INTO `order_items` VALUES (1,1,1,1,1500.00),(2,1,2,1,3.00);
 /*!40000 ALTER TABLE `order_items` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -183,7 +182,7 @@ CREATE TABLE `orders` (
   PRIMARY KEY (`order_id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -192,7 +191,6 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,8,'2025-07-08 16:04:50','pending',1503.00,'wqir, afdsf, 34535435','card');
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -288,39 +286,6 @@ INSERT INTO `products` VALUES (1,'test2','uploads/models/Mittelfinger_stl.stl',1
 UNLOCK TABLES;
 
 --
--- Table structure for table `refresh_token_blacklist`
---
-
-DROP TABLE IF EXISTS `refresh_token_blacklist`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `refresh_token_blacklist` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `token` varchar(512) NOT NULL,
-  `user_id` int NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `blacklisted_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  `expires_at` timestamp NOT NULL,
-  `reason` varchar(64) DEFAULT 'logout',
-  PRIMARY KEY (`id`),
-  KEY `idx_token` (`token`),
-  KEY `user_id` (`user_id`),
-  KEY `username` (`username`),
-  CONSTRAINT `refresh_token_blacklist_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE,
-  CONSTRAINT `refresh_token_blacklist_ibfk_2` FOREIGN KEY (`username`) REFERENCES `users` (`username`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `refresh_token_blacklist`
---
-
-LOCK TABLES `refresh_token_blacklist` WRITE;
-/*!40000 ALTER TABLE `refresh_token_blacklist` DISABLE KEYS */;
-/*!40000 ALTER TABLE `refresh_token_blacklist` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `reviews`
 --
 
@@ -370,7 +335,7 @@ CREATE TABLE `two_factor_codes` (
   `is_used` tinyint(1) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -379,7 +344,7 @@ CREATE TABLE `two_factor_codes` (
 
 LOCK TABLES `two_factor_codes` WRITE;
 /*!40000 ALTER TABLE `two_factor_codes` DISABLE KEYS */;
-INSERT INTO `two_factor_codes` VALUES (1,6,'053534','2025-07-03 20:11:56',3,0,'2025-07-03 20:06:55'),(2,6,'390459','2025-07-03 20:17:37',3,0,'2025-07-03 20:12:36'),(3,6,'665817','2025-07-03 20:25:14',3,1,'2025-07-03 20:20:14'),(4,6,'685950','2025-07-03 20:26:24',1,0,'2025-07-03 20:21:24'),(5,6,'739130','2025-07-04 08:54:42',2,1,'2025-07-04 08:49:41'),(6,6,'049513','2025-07-04 09:13:19',3,1,'2025-07-04 09:08:19'),(7,7,'928657','2025-07-04 09:30:32',3,1,'2025-07-04 09:25:32'),(8,8,'016889','2025-07-08 07:21:32',2,0,'2025-07-08 07:16:31'),(9,8,'293617','2025-07-08 07:21:50',3,1,'2025-07-08 07:16:49');
+INSERT INTO `two_factor_codes` VALUES (1,6,'053534','2025-07-03 20:11:56',3,0,'2025-07-03 20:06:55'),(2,6,'390459','2025-07-03 20:17:37',3,0,'2025-07-03 20:12:36'),(3,6,'665817','2025-07-03 20:25:14',3,1,'2025-07-03 20:20:14'),(4,6,'685950','2025-07-03 20:26:24',1,0,'2025-07-03 20:21:24'),(5,6,'739130','2025-07-04 08:54:42',2,1,'2025-07-04 08:49:41'),(6,6,'049513','2025-07-04 09:13:19',3,1,'2025-07-04 09:08:19'),(7,7,'928657','2025-07-04 09:30:32',3,1,'2025-07-04 09:25:32');
 /*!40000 ALTER TABLE `two_factor_codes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -406,7 +371,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`user_id`),
   UNIQUE KEY `username` (`username`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -415,7 +380,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (4,'admin','admin@admin.com','scrypt:32768:8:1$clTQw3Yrv4apONTD$95a46f9cea5324be7b8e3d507f041e65858376e7e60d7760ada459cea7b02d7df474774b0fd35f9ee5f0b38c0ac463bdbe9d2e41a4926438cdbb85ca400b0bc0','admin',NULL,NULL,NULL,'2025-06-22 08:33:02','2025-06-22 08:33:19',NULL,NULL),(5,'altius','altiuschua9@gmail.com','scrypt:32768:8:1$g11BAv0d14EiOijP$6da13c7cf51c0599c6338390457493c2b08a0acf8683623066931a174a43d298e6fc98291dbd23601b28f01eb31ff71a33ca4b62fe831dbfd6308489e702313c','customer',NULL,NULL,NULL,'2025-07-03 11:47:21','2025-07-03 11:47:21',NULL,NULL),(6,'justin','justin9872010@hotmail.com','scrypt:32768:8:1$ailjV8VmVPaMQnH1$61498fe5fad2ddd4d75f52ef747179b43168b6145d3554f67c6b45675291f0c60bdaac7822c8ea2c903802b29f24aa144f61aea1e807b24597c5ce7be5d78d1a','customer',NULL,NULL,NULL,'2025-07-03 20:05:40','2025-07-04 09:08:39',NULL,'172.18.0.1'),(7,'tester','pekow47784@coasah.com','scrypt:32768:8:1$VkCppJ4T2uIU2i5g$2e181a96e07b0423a6d80efa24636ceb9766df8202c68a132f685c215a7c45be0c3fab1696d85b3802cc70b503bdf284ca496f2f0b2d1b1c7f9c72c1fa71a9d9','customer',NULL,NULL,NULL,'2025-07-04 09:25:27','2025-07-04 09:25:50',NULL,'172.18.0.1'),(8,'moo','kaweve9139@dxirl.com','scrypt:32768:8:1$9W0V5wMWRmcDdeii$2a60737ae5248094b0a44acc859b2676dfbf2e7b5184f77a6d979c4151741adc6891853fe774464fe3bf1aad3c0fea2dfbd0b07f5815630f46538e1c530bc290','customer',NULL,NULL,NULL,'2025-07-08 07:16:24','2025-07-08 07:17:09',NULL,'172.18.0.1');
+INSERT INTO `users` VALUES (4,'admin','admin@admin.com','scrypt:32768:8:1$clTQw3Yrv4apONTD$95a46f9cea5324be7b8e3d507f041e65858376e7e60d7760ada459cea7b02d7df474774b0fd35f9ee5f0b38c0ac463bdbe9d2e41a4926438cdbb85ca400b0bc0','admin',NULL,NULL,NULL,'2025-06-22 08:33:02','2025-06-22 08:33:19',NULL,NULL),(5,'altius','altiuschua9@gmail.com','scrypt:32768:8:1$g11BAv0d14EiOijP$6da13c7cf51c0599c6338390457493c2b08a0acf8683623066931a174a43d298e6fc98291dbd23601b28f01eb31ff71a33ca4b62fe831dbfd6308489e702313c','customer',NULL,NULL,NULL,'2025-07-03 11:47:21','2025-07-03 11:47:21',NULL,NULL),(6,'justin','justin9872010@hotmail.com','scrypt:32768:8:1$ailjV8VmVPaMQnH1$61498fe5fad2ddd4d75f52ef747179b43168b6145d3554f67c6b45675291f0c60bdaac7822c8ea2c903802b29f24aa144f61aea1e807b24597c5ce7be5d78d1a','customer',NULL,NULL,NULL,'2025-07-03 20:05:40','2025-07-04 09:08:39',NULL,'172.18.0.1'),(7,'tester','pekow47784@coasah.com','scrypt:32768:8:1$VkCppJ4T2uIU2i5g$2e181a96e07b0423a6d80efa24636ceb9766df8202c68a132f685c215a7c45be0c3fab1696d85b3802cc70b503bdf284ca496f2f0b2d1b1c7f9c72c1fa71a9d9','customer',NULL,NULL,NULL,'2025-07-04 09:25:27','2025-07-04 09:25:50',NULL,'172.18.0.1');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -428,4 +393,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-10 17:49:20
+-- Dump completed on 2025-07-04 17:54:48
