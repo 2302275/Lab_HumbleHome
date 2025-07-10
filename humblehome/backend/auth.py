@@ -7,6 +7,7 @@ import smtplib
 from email.mime.text import MIMEText
 import logging, threading
 import os
+import uuid
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
@@ -20,6 +21,25 @@ FROM_EMAIL = 'noreply@yourdomain.com'
 
 # Configuration - should be in environment variables
 RESET_TOKEN_EXPIRY = 3600  # 1 hour in seconds
+
+def generate_tokens(user, secretkey):
+    # Short-lived access token (15 min)
+    access_token = jwt.encode({
+        'user_id': user['user_id'],
+        'email': user['email'],
+        'type': 'access',
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+    }, secretkey, algorithm='HS256')
+
+    # Long-lived refresh token (7 days)
+    refresh_token = jwt.encode({
+        'user_id': user['user_id'],
+        'type': 'refresh',
+        'jti': str(uuid.uuid4()),
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=7)
+    }, secretkey, algorithm='HS256')
+
+    return access_token, refresh_token
 
 def send_otp_email(recipient_email, otp_code):
     email_body = f"""
@@ -83,72 +103,121 @@ def register():
     logger.info(f"New account has been registered with email: {email}")
     return jsonify({'message':'User registered successfully..'}), 201
 
-@auth_bp.route('/api/login', methods=['POST'])
+@auth_bp.route("/api/login", methods=["POST"])
 def login():
     db = get_db()
     cursor = db.cursor(dictionary=True)
-    formData = request.json
+    data = request.json
 
-    login_source = formData.get('login_source', 'user')  # default to 'user' if missing
-    loginInput = formData['login']
-    password = formData['password']
-    ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
+    login_source = data.get("login_source", "user")  # "user" (default) or "admin"
+    login_input  = data["login"]                     # email or username
+    password     = data["password"]
 
-    cursor.execute("SELECT * FROM users WHERE email = %s OR username = %s", (loginInput, loginInput))
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr).split(",")[0]
+
+    # ───────────────────────────────────────────
+    # 1. Fetch user & basic credential check
+    # ───────────────────────────────────────────
+    cursor.execute(
+        "SELECT * FROM users WHERE email = %s OR username = %s",
+        (login_input, login_input),
+    )
     user = cursor.fetchone()
 
-    if not user or not check_password_hash(user['password_hash'], password):
-        logger.warning(f"Failed login attempt for \"{loginInput}\"")
-        return jsonify({'message': 'Invalid credentials.'}), 401
+    if not user or not check_password_hash(user["password_hash"], password):
+        logger.warning(f"Failed login attempt for '{login_input}'")
+        return jsonify({"message": "Invalid credentials."}), 401
 
-    if user['role'] == 'admin' and login_source != 'admin':
-        logger.warning(f"Blocked admin login from user portal for \"{user['email']}\"")
-        return jsonify({'message': 'Invalid Credentials.'}), 403
+    # ───────────────────────────────────────────
+    # 2. Portal‑role guardrails
+    # ───────────────────────────────────────────
+    if user["role"] == "admin" and login_source != "admin":
+        logger.warning(f"Blocked admin login from user portal for '{user['email']}'")
+        return jsonify({"message": "Invalid credentials."}), 403
 
-    if user['role'] != 'admin' and login_source == 'admin':
-        logger.warning(f"Blocked non-admin user \"{user['email']}\" from accessing admin portal")
-        return jsonify({'message': 'Invalid credentials.'}), 403
+    if user["role"] != "admin" and login_source == "admin":
+        logger.warning(f"Blocked non‑admin user '{user['email']}' from admin portal")
+        return jsonify({"message": "Invalid credentials."}), 403
 
-    IS_TEST_ENV = os.environ.get("TESTING") == "1"
-    IS_TEST_USER = user['email'] == 'newuser@example.com'
-    # Bypass OTP for testing purposes
-    if IS_TEST_ENV or IS_TEST_USER or user['role'] == 'admin' or user.get('last_ip') == ip:
-        token = jwt.encode(
-            {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-            secretkey,
-            algorithm='HS256'
-        )
+    # ───────────────────────────────────────────
+    # 3. Decide if OTP is required
+    # ───────────────────────────────────────────
+    IS_TEST_ENV  = os.environ.get("TESTING") == "1"
+    IS_TEST_USER = user["email"] == "newuser@example.com"
+    same_ip      = user.get("last_ip") == ip
+    is_admin     = user["role"] == "admin"
+
+    otp_needed = not (IS_TEST_ENV or IS_TEST_USER or is_admin or same_ip)
+
+    # ───────────────────────────────────────────
+    # 4‑A. NO OTP required  →  issue tokens now
+    # ───────────────────────────────────────────
+    if not otp_needed:
+        access_token, refresh_token = generate_tokens(user, secretkey)
 
         user_info = {
-            'id': user['user_id'],
-            'username': user['username'],
-            'email': user['email'],
-            'role': user.get('role', 'user'),
-            'profile_pic': user.get('profile_pic')
+            "id":       user["user_id"],
+            "username": user["username"],
+            "email":    user["email"],
+            "role":     user["role"],
+            "profile_pic": user.get("profile_pic"),
         }
 
-        logger.info(f"{'[TEST MODE] ' if IS_TEST_ENV else ''}User \"{user['username']}\" logged in successfully")
-        return jsonify({'token': token, 'user': user_info}), 200
+        logger.info(
+            f"{'[TEST MODE] ' if IS_TEST_ENV else ''}"
+            f"User '{user['username']}' logged in without OTP"
+        )
+        return jsonify(
+            {
+                "access_token":  access_token,
+                "refresh_token": refresh_token,
+                "user":          user_info,
+            }
+        ), 200
 
-    # 🔐 Normal OTP path
-    otp_code = ''.join(secrets.choice('0123456789') for _ in range(6))
+    # ───────────────────────────────────────────
+    # 4‑B. OTP required  →  generate & send code
+    # ───────────────────────────────────────────
+    otp_code   = "".join(secrets.choice("0123456789") for _ in range(6))
     expires_at = datetime.datetime.now() + datetime.timedelta(minutes=5)
 
     cursor.execute(
-        "INSERT INTO two_factor_codes (user_id, otp_code, expires_at) VALUES (%s, %s, %s)",
-        (user['user_id'], otp_code, expires_at)
+        """
+        INSERT INTO two_factor_codes (user_id, otp_code, expires_at)
+        VALUES (%s, %s, %s)
+        """,
+        (user["user_id"], otp_code, expires_at),
     )
     db.commit()
 
-    threading.Thread(target=send_otp_email, args=(user['email'], otp_code)).start()
-    logger.info(f"OTP sent to {user['email']} due to new IP login")
-    return jsonify({'message': 'OTP sent to email', 'user_id': user['user_id']}), 200
+    threading.Thread(target=send_otp_email, args=(user["email"], otp_code)).start()
+    logger.info(f"OTP sent to '{user['email']}' (new IP login)")
+
+    return jsonify(
+        {"message": "OTP sent to email", "user_id": user["user_id"]}
+    ), 200
+
 
 
 
 @auth_bp.route('/api/logout', methods=['POST'])
 @token_req
 def logout(current_user):
+    token = request.headers.get('Authorization', '').split(' ')[1]
+    
+    try:
+        payload = jwt.decode(token, secretkey, algorithms=['HS256'])
+        expires_at = datetime.datetime.utcfromtimestamp(payload['exp'])
+    except Exception:
+        expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO refresh_token_blacklist (token, user_id, expires_at, reason) VALUES (%s, %s, %s, %s)",
+        (token, current_user['user_id'], expires_at, 'logout')
+    )
+    db.commit()
+    
     logger.info(f"User \"{current_user['username']}\" logged out successfully")
     return jsonify({'message': 'Logged out successfully.'}), 200
 
@@ -207,11 +276,8 @@ def verify_otp():
     # Issue final JWT
     cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,))
     user = cursor.fetchone()
-    token = jwt.encode(
-        {'email': user['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)},
-        secretkey,
-        algorithm='HS256'
-    )
+    
+    access_token, refresh_token = generate_tokens(user, secretkey)
 
     user_info = {
         'id': user['user_id'],
@@ -227,7 +293,7 @@ def verify_otp():
     
     logger.info(f"User \"{user['username']}\" logged in successfully")
 
-    return jsonify({'token': token, 'user': user_info}), 200
+    return jsonify({'access_token': access_token, 'refresh_token': refresh_token,'user': user_info}), 200
 
 @auth_bp.route('/api/resend-otp', methods=['POST', 'OPTIONS'])
 def resend_otp():
@@ -272,8 +338,8 @@ def reset_password():
     new_password = data.get('new_password')
     
     if not token or not new_password:
-        return jsonify({'message': 'Token and new password are required', 'success': False}), 400
-    
+        return jsonify({'message': 'New password is required', 'success': False}), 400
+
     if not is_password_complex(new_password):
         return jsonify({
             'message': 'Password must be at least 8 characters long and include 1 uppercase letter, 1 number, and 1 special character.',
@@ -398,3 +464,56 @@ def forgot_password():
         return jsonify({'message': 'Failed to send reset email'}), 500
     
     return jsonify({'message': 'Password reset link sent to your email'}), 200
+
+
+@auth_bp.route('/api/refresh', methods=['POST'])
+def refresh():
+    """Endpoint to refresh access tokens using a refresh token"""
+    data = request.get_json()
+    refresh_token = data.get('refresh_token')
+    
+    if not refresh_token:
+        return jsonify({'message': 'Refresh token required'}), 400
+    
+    try:
+        # Decode refresh token
+        payload = jwt.decode(refresh_token, secretkey, algorithms=['HS256'])
+        
+        # Verify it's a refresh token
+        if payload.get('type') != 'refresh':
+            logger.warning(f"Invalid token type used in refresh attempt")
+            return jsonify({'message': 'Please log in again.'}), 401
+        
+        # Check if blacklisted
+        db = get_db()
+        cursor = db.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM refresh_token_blacklist WHERE token = %s", (refresh_token,))
+        if cursor.fetchone():
+            logger.warning(f"Attempted to use blacklisted refresh token")
+            return jsonify({'message': 'Please log in again.'}), 401
+        
+        # Get user info
+        cursor.execute("SELECT * FROM users WHERE user_id = %s", (payload['user_id'],))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({'message': 'User not found'}), 404
+        
+        # Generate new access token
+        new_access_token = jwt.encode({
+            'user_id': user['user_id'],
+            'email': user['email'],
+            'type': 'access',
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=15)
+        }, secretkey, algorithm='HS256')
+        
+        logger.info(f"Access token refreshed for user \"{user['username']}\"")
+        
+        return jsonify({'access_token': new_access_token}), 200
+            
+    except jwt.ExpiredSignatureError:
+        logger.info(f"Expired refresh token used")
+        return jsonify({'message': 'Please log in again.'}), 401
+    except jwt.InvalidTokenError:
+        logger.warning(f"Invalid refresh token used")
+        return jsonify({'message': 'Please log in again.'}), 401

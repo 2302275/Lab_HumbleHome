@@ -88,7 +88,7 @@ export default function ProductDetail({ user }) {
   const fetchReviews = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${id}/reviews?page=${page}&per_page=${itemsPerPage}&sort=${sort}`
+        `/api/products/${id}/reviews?page=${page}&per_page=${itemsPerPage}&sort=${sort}`
       );
       const data = await res.json();
 
@@ -153,7 +153,7 @@ export default function ProductDetail({ user }) {
   const fetchReviewStats = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/products/${id}/reviews/stats`
+        `/api/products/${id}/reviews/stats`
       );
       const data = await res.json();
       setReviewStats(data);
