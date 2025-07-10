@@ -25,6 +25,12 @@ import Contact from "./pages/Contact.jsx";
 
 import { SessionTimeoutContext } from "./components/SessionTimeoutContext.jsx";
 
+// Create the context
+const AuthContext = createContext();
+
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);
+
 export default function App() {
   const navigate = useNavigate();
 
@@ -34,22 +40,91 @@ export default function App() {
 
   const { isInactive } = useContext(SessionTimeoutContext);
 
+  // Add these token refresh functions inside your App component
+  const refreshAccessToken = async () => {
+    try {
+      const refreshToken = localStorage.getItem("refresh_token");
+      
+      if (!refreshToken) {
+        return null;
+      }
+      
+      const response = await fetch("/api/refresh", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refresh_token: refreshToken })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem("access_token", data.access_token);
+        console.log("Access token refreshed successfully");
+        return data.access_token;
+      } else {
+        console.log("Failed to refresh token:", response.status);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error refreshing token:", error);
+      return null;
+    }
+  };
+
+  // Wrapper for fetch that handles token refresh
+  const authenticatedFetch = async (url, options = {}) => {
+    let accessToken = localStorage.getItem("access_token");
+    
+    // Set up headers with the access token
+    const headers = {
+      ...options.headers,
+      "Authorization": `Bearer ${accessToken}`
+    };
+    
+    // First attempt with current token
+    let response = await fetch(url, { ...options, headers });
+    
+    // If unauthorized (token expired), try refreshing
+    if (response.status === 401) {
+      console.log("Token expired, attempting refresh...");
+      const newToken = await refreshAccessToken();
+      
+      // If refresh successful, retry original request with new token
+      if (newToken) {
+        headers.Authorization = `Bearer ${newToken}`;
+        response = await fetch(url, { ...options, headers });
+      } else {
+        // Clear tokens and redirect to login
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
+        setUser(null);
+        if (window.location.pathname !== "/login") {
+          navigate("/login");
+        }
+      }
+    }
+    
+    return response;
+  };
+
   const fetchProfile = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    const access_token = localStorage.getItem("access_token");
+    if (!access_token) {
       setLoadingUser(false);
       return;
     }
 
     try {
-      const res = await fetch("/api/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await authenticatedFetch("/api/me");
       const data = await res.json();
+      
       if (res.ok) {
         setUser(data.user);
       } else {
-        localStorage.removeItem("token");
+        // If it's still not OK after potential token refresh
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
         setUser(null);
         alert("Your session has expired. Please log in again.");
         navigate("/login");
@@ -61,14 +136,20 @@ export default function App() {
     }
   };
 
+  // Make authenticatedFetch available to child components
+  // You can pass this down via props or context if needed
   useEffect(() => {
+    // Expose authenticatedFetch to global window object (not ideal, but works without creating a file)
+    // window.authenticatedFetch = authenticatedFetch;
+    
     fetchProfile();
   }, []);
 
   useEffect(() => {
     if (user && isInactive) {
       setShowSessionModal(true);
-      localStorage.removeItem("token");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("user");
       sessionStorage.removeItem("pending_2fa_user_id");
       setUser(null);
@@ -76,18 +157,22 @@ export default function App() {
   }, [isInactive, user]);
 
   const handleLogout = async () => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    const accessToken = localStorage.getItem("access_token");
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (accessToken) {
       try {
-        await fetch("/api/logout", {
+        await authenticatedFetch("/api/logout", {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${accessToken}` },
+          body: JSON.stringify({ refresh_token: refreshToken })
         });
       } catch (error) {
         console.error("Logout error:", error);
       }
     }
-    localStorage.removeItem("token");
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
     setUser(null);
   };
 
@@ -99,7 +184,7 @@ export default function App() {
 
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/product/:id" element={<ProductDetail user={user} />} />
+          <Route path="/product/:id" element={<ProductDetail user={user} authenticatedFetch={authenticatedFetch} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login setUser={setUser} fetchProfile={fetchProfile} />} />
           <Route path="/verify-otp" element={<VerifyOtp setUser={setUser} fetchProfile={fetchProfile} />} />
@@ -109,25 +194,25 @@ export default function App() {
           
           <Route path="/admin" element={
             <AdminRoute user={user} loading={loadingUser}>
-              <AdminDashboard user={user} setUser={setUser} />
+              <AdminDashboard user={user} setUser={setUser} authenticatedFetch={authenticatedFetch}/>
             </AdminRoute>
           } />
 
           <Route path="/cart" element={
             <UserRoute user={user} loading={loadingUser}>
-              <Cart user={user} />
+              <Cart user={user} authenticatedFetch={authenticatedFetch} />
             </UserRoute>
           } />
 
           <Route path="/contact" element={
             <UserRoute user={user} loading={loadingUser}>
-              <Contact user={user} />
+              <Contact user={user} authenticatedFetch={authenticatedFetch} />
             </UserRoute>
           } />
 
           <Route path="/profile" element={
             <UserRoute user={user} loading={loadingUser}>
-              <Profile user={user} setUser={setUser} />
+              <Profile user={user} setUser={setUser} authenticatedFetch={authenticatedFetch} />
             </UserRoute>
           } />
 
@@ -140,7 +225,7 @@ export default function App() {
           
           <Route path="/payment" element={
             <UserRoute user={user} loading={loadingUser}>
-              <Payment user={user} />
+              <Payment user={user} authenticatedFetch={authenticatedFetch} />
             </UserRoute>
           } />
 
