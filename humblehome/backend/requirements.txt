@@ -8,3 +8,4 @@ flake8
 black
 Selenium
 chromedriver-autoinstaller
+requests
