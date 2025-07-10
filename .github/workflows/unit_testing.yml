@@ -62,6 +62,10 @@ jobs:
         run: python tests/selenium/checkout_test.py
         working-directory: humblehome/backend
 
+      - name: Run Profile Update Tests
+        run: python tests/selenium/updated_profile_test.py
+        working-directory: humblehome/backend
+
       # On failure, print logs and upload artifacts
       - name: Show Docker Compose logs on failure
         if: failure()

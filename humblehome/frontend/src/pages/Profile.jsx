@@ -254,7 +254,7 @@ const handlePasswordChange = async (e) => {
     });
 
     if (res.ok) {
-      alert("Profile updated!");
+      toast.success("Profile Updated successfully!");
       const updatedUser = {
         ...user,
         full_name: formData.fullname,
@@ -266,11 +266,6 @@ const handlePasswordChange = async (e) => {
   };
 
   const handleImageUpload = async () => {
-    // Validate the file type and size
-    // if (!validateImageTypeAndSize(file)) {
-    //   return;
-    // }
-
     const token = localStorage.getItem("token");
     const formData = new FormData();
     formData.append("image", file);

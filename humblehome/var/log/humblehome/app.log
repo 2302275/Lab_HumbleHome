@@ -341,3 +341,14 @@
 2025-07-10 09:34:15,390 INFO: Checkout initiated by "newuser123".
 2025-07-10 09:34:15,401 INFO: Order created for user "newuser123".
 2025-07-10 09:34:15,428 INFO: Order items added to "newuser123" order.
+2025-07-10 10:45:26,449 INFO: create_app() called
+2025-07-10 10:45:26,941 INFO: create_app() called
+2025-07-10 10:46:02,043 INFO: User 'newuser123' logged in without OTP
+2025-07-10 10:46:03,106 INFO: User "newuser123" updated their profile successfully! -- Fields Updated: full_name, phone_number, address
+2025-07-10 10:46:27,552 WARNING: Failed login attempt for 'Jordan'
+2025-07-10 10:46:32,622 INFO: User 'Jordan' logged in without OTP
+2025-07-10 10:46:43,823 INFO: User "Jordan" updated their profile successfully! -- Fields Updated: full_name, phone_number, address
+2025-07-10 10:47:54,922 INFO: User "Jordan" submitted profile update with no changes.
+2025-07-10 10:48:05,808 INFO: User "Jordan" submitted profile update with no changes.
+2025-07-10 10:48:18,207 INFO: User 'newuser123' logged in without OTP
+2025-07-10 10:48:19,017 INFO: User "newuser123" submitted profile update with no changes.
