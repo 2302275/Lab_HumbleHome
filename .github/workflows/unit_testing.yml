@@ -23,10 +23,19 @@ jobs:
         run: docker compose up -d
         working-directory: humblehome
 
+      - name: Debug Running Containers
+        run: docker ps -a
+        working-directory: humblehome
+
       - name: Wait for Nginx (Frontend proxy)
         run: |
           echo "Waiting for http://localhost..."
           curl --retry 10 --retry-connrefused --retry-delay 3 http://localhost
+
+      - name: Show Nginx Logs
+        if: failure()
+        run: docker compose logs nginx
+        working-directory: humblehome
 
       - name: Set up Python
         uses: actions/setup-python@v5
