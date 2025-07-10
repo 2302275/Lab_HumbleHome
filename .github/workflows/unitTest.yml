@@ -15,7 +15,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install -r humblehome/backend/requirements.txt
-          pip install selenium webdriver-manager
+          pip install requests
 
       - name: Set up Python
         uses: actions/setup-python@v5
