@@ -1,0 +1,36 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+
+      # Start backend/frontend/nginx locally
+      - name: Start app with Docker Compose
+        run: docker compose up -d
+        working-directory: humblehome
+
+      - name: Wait for docker to start up
+        run: sleep 10
+
+      # Run the test
+      - name: Run Login/Register Tests
+        run: python tests/unit_test.py
+        working-directory: humblehome/backend
+
+      - name: Stop Docker Containers
+        run: docker compose down
+        working-directory: humblehome
+      
