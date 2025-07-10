@@ -45,6 +45,7 @@ def create_app():
     app.teardown_appcontext(close_db)
     return app
 
+
 if __name__ == "__main__":
     try:
         logger.info("Starting Flask app...")

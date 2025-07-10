@@ -3,6 +3,7 @@ import os
 
 os.environ["TESTING"] = "1"
 
+
 def test_login_success():
     url = "http://localhost:5000/api/login"
     payload = {

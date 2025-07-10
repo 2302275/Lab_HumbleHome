@@ -35,9 +35,11 @@ def is_valid_stl(file_stream):
         return False
     except Exception:
         return False
-    
+
+
 def allowed_image_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+    return filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif'))
+
 
 def validate_image_file(file):
     # Check extension
@@ -56,6 +58,7 @@ def validate_image_file(file):
         return False, 'Invalid or corrupted image file'
     file.seek(0)
     return True, None
+
 
 @products_bp.route('/api/uploads/images/<filename>')
 def serve_image_file(filename):
@@ -337,7 +340,8 @@ def update_product(current_user, product_id):
             (thumbnail_path, product_id),
         )
 
-        logger.info(f"Thumbnail image updated for product \"{name}\" by user \"{current_user['username']}\".")
+        logger.info(f"""Thumbnail image updated for product \"{name}\"
+                    by user \"{current_user['username']}\".""")
 
     if existing_images_order:
         try:
@@ -398,13 +402,9 @@ def update_product(current_user, product_id):
         path = os.path.join("uploads/images", filename)
         image.save(path)
 
-        
         cursor.execute("""
             INSERT INTO product_images (product_id, image_url, sort_order)
-            VALUES (%s, %s, %s)
-        """,
-            (product_id, path, next_sort_order),
-        )
+            VALUES (%s, %s, %s)""", (product_id, path, next_sort_order), )
 
         next_sort_order += 1  # increment for next image
         logger.info(
