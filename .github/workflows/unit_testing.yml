@@ -21,6 +21,7 @@ jobs:
 
       - name: Build and Start App Services
         run: docker compose up -d db backend frontend
+        working-directory: humblehome
 
       - name: Wait for Frontend
         run: |
@@ -45,3 +46,4 @@ jobs:
       - name: Shut down services
         if: always()
         run: docker compose down
+        working-directory: humblehome
