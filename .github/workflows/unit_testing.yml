@@ -56,15 +56,15 @@ jobs:
       # Run the test
       - name: Run Login/Register Tests
         run: python tests/selenium/ui_test.py
-        working-directory: humblehome/backend
+        working-directory: humblehome/selenium/backend
 
       - name: Run Checkout Tests
         run: python tests/selenium/checkout_test.py
-        working-directory: humblehome/backend
+        working-directory: humblehome/selenium/backend
 
       - name: Run Profile Update Tests
         run: python tests/selenium/updated_profile_test.py
-        working-directory: humblehome/backend
+        working-directory: humblehome/selenium/backend
 
       # On failure, print logs and upload artifacts
       - name: Show Docker Compose logs on failure

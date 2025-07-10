@@ -3,7 +3,6 @@ import os
 
 os.environ["TESTING"] = "1"
 
-
 def test_login_success():
     url = "http://localhost:5000/api/login"
     payload = {
@@ -55,9 +54,9 @@ def test_register_new_user_existing_email():
 
 
 def main():
+    test_register_new_user()
     test_login_success()
     test_login_failure()
-    test_register_new_user()
     test_register_new_user_existing_email()
     print("All tests passed!")
 

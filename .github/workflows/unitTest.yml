@@ -12,6 +12,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install Python dependencies
+        run: |
+          pip install -r humblehome/backend/requirements.txt
+          pip install selenium webdriver-manager
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
