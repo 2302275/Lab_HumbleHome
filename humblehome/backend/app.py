@@ -45,12 +45,27 @@ def create_app():
     app.teardown_appcontext(close_db)
     return app
 
-
 if __name__ == "__main__":
     try:
         logger.info("Starting Flask app...")
         app = create_app()
-        logger.info("Flask app started successfully.")
+
+        # CSP
+        @app.after_request
+        def set_csp(response):
+            response.headers['Content-Security-Policy'] = (
+                "default-src 'self'; "
+                "script-src 'self'; "
+                "style-src 'self' 'unsafe-inline'; "
+                "img-src 'self' data:; "
+                "font-src 'self'; "
+                "connect-src 'self'; "
+                "object-src 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self';"
+            )
+            return response
+
         UPLOAD_FOLDER = "uploads/models"
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
         app.run(host="0.0.0.0", port=5000)
