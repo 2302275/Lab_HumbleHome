@@ -23,6 +23,12 @@ export default function ProductDetail({ user }) {
   const [hasPurchased, setHasPurchased] = useState(false);
   const [hasReviewed, setHasReviewed] = useState(false);
 
+  const sanitizeInput = (str) =>
+    str.replace(/[<>\/\\'"`]/g, "").trim();
+  const isValidComment = (str) =>
+    str.length >= 5 && str.length <= 500;
+
+
   useEffect(() => {
     const checkPurchase = async () => {
       try {
@@ -101,9 +107,21 @@ export default function ProductDetail({ user }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const cleanComment = sanitizeInput(form.comment);
+
+    if (!isValidComment(cleanComment)) {
+      toast.error("Comment must be 5–500 characters.");
+      return;
+    }
+
+    if (form.rating < 1 || form.rating > 5) {
+      toast.error("Please select a rating between 1 and 5.");
+      return;
+    }
+
     try {
       const response = await fetch(
-        `http://localhost:5000/api/products/${id}/reviews`,
+        `/api/products/${id}/reviews`,
         {
           method: "POST",
           headers: {
@@ -111,7 +129,7 @@ export default function ProductDetail({ user }) {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
-            comment: form.comment,
+            comment: cleanComment,
             rating: form.rating,
           }),
         }
@@ -123,13 +141,14 @@ export default function ProductDetail({ user }) {
         toast.success(`Review Submitted! Thank you!`);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || "Failed to submit review");
+        toast.error(errorData.error || "Failed to submit review");
       }
     } catch (err) {
       console.error(err);
-      alert("Error submitting review");
+      toast.error("Error submitting review");
     }
   };
+
 
   const fetchReviewStats = async () => {
     try {

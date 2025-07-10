@@ -23,6 +23,12 @@ function Profile({ user, setUser }) {
   const [enquiries, setEnquiries] = useState([]);
   const [replyInputs, setReplyInputs] = useState({});
 
+  const sanitizeInput = (str) =>
+    str.replace(/[<>\/\\'"`]/g, "").trim();
+
+  const isValidMessage = (str) =>
+    str.length >= 5 && str.length <= 1000;
+
   const [passwordData, setPasswordData] = useState({
   currentPassword: '',
   newPassword: '',
@@ -122,6 +128,12 @@ const handlePasswordChange = async (e) => {
       toast.error("Reply message cannot be empty.");
       return;
     }
+    const cleanMessage = sanitizeInput(message || "");
+
+    if (!isValidMessage(cleanMessage)) {
+      toast.error("Message must be 5–1000 characters.");
+      return;
+    }
 
     try {
       const res = await fetch(`/api/enquiries/${enquiryId}/userreply`, {
@@ -130,7 +142,7 @@ const handlePasswordChange = async (e) => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ cleanMessage }),
       });
 
       const data = await res.json();

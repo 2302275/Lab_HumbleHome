@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 
+const sanitizeInput = (str) =>
+  str.replace(/[<>\/\\'"`]/g, "").trim();
+
+const isValidSubject = (str) => str.length >= 3 && str.length <= 100;
+const isValidMessage = (str) => str.length >= 5 && str.length <= 1000;
+
+
 export default function Contact({ user }) {
   const [form, setForm] = useState({
     name: user?.username || "",
@@ -41,6 +48,33 @@ export default function Contact({ user }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Sanitize & Validate
+    const cleanForm = { ...form };
+    Object.keys(cleanForm).forEach((key) => {
+      if (key !== "product_id") {
+        cleanForm[key] = sanitizeInput(cleanForm[key]);
+      }
+    });
+
+    if (!isValidSubject(cleanForm.subject)) {
+      toast.error("Subject must be 3–100 characters.");
+      return;
+    }
+
+    if (!isValidMessage(cleanForm.message)) {
+      toast.error("Message must be 5–1000 characters.");
+      return;
+    }
+
+    if (!selectedOrderId) {
+      toast.error("Please select an order.");
+      return;
+    }
+
+    // Attach order_id
+    cleanForm.order_id = parseInt(selectedOrderId);
+
     try {
       const res = await fetch("/api/enquiries", {
         method: "POST",
@@ -48,7 +82,7 @@ export default function Contact({ user }) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(form),
+        body: JSON.stringify(cleanForm),
       });
 
       const data = await res.json();
@@ -61,6 +95,7 @@ export default function Contact({ user }) {
           message: "",
           product_id: null,
         });
+        setSelectedOrderId(null);
       } else {
         toast.error(data.error || "Submission failed");
       }
@@ -69,6 +104,7 @@ export default function Contact({ user }) {
       toast.error("Server error");
     }
   };
+
 
   return (
     <div className="max-w-xl mx-auto my-8 p-6 bg-white shadow rounded">
