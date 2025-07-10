@@ -6,7 +6,7 @@ os.environ["TESTING"] = "1"
 
 def test_login_success():
     url = "http://localhost/api/login"
-    payload = {"login": "newuser1234@example.com", "password": "NewUserPass123!"}
+    payload = {"login": "newuser1421421421@example.com", "password": "NewUserPass123!"}
 
     response = requests.post(url, json=payload)
     assert response.status_code == 200
