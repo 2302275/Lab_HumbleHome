@@ -42,7 +42,7 @@ jobs:
 
       - name: Run Selenium UI Test
         working-directory: humblehome/backend
-        run: python tests/selenium/test_ui.py
+        run: python tests/selenium/ui_test.py
 
       - name: Shut down services
         if: always()
