@@ -28,7 +28,7 @@ class EcommerceSiteTest(unittest.TestCase):
         cls.test_email = "newuser@example.com"
         cls.test_password = "NewUserPass123!"
 
-    def test_homepage_products_displayed(self):
+    def test_04_test_homepage_products_displayed(self):
         try:
             self.driver.get(f"{self.base_url}/")
             # Check title contains your store name (adjust if needed)
@@ -45,7 +45,7 @@ class EcommerceSiteTest(unittest.TestCase):
                 f.write(self.driver.page_source)
             raise
 
-    def test_register_new_user(self):
+    def test_01_test_register_new_user(self):
         try:
             self.driver.get(f"{self.base_url}/register")
             self.driver.find_element(By.NAME, "username").send_keys("newuser123")
@@ -65,7 +65,7 @@ class EcommerceSiteTest(unittest.TestCase):
                 f.write(self.driver.page_source)
             raise
 
-    def test_login_success(self):
+    def test_02_test_login_success(self):
         try:
             self.driver.get(f"{self.base_url}/login")
             self.driver.find_element(By.NAME, "login_input").send_keys(self.test_email)
@@ -92,7 +92,7 @@ class EcommerceSiteTest(unittest.TestCase):
                 f.write(self.driver.page_source)
             raise
 
-    def test_login_failure(self):
+    def test_03_test_login_failure(self):
         try:
             self.driver.get(f"{self.base_url}/login")
             self.driver.find_element(By.NAME, "login_input").send_keys(self.test_email)
