@@ -4,35 +4,12 @@ import "slick-carousel/slick/slick-theme.css";
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 
-// const ReviewData = [
-//   {
-//     id: 1,
-//     name: "Victor",
-//     text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque reiciendis inventore iste ratione ex alias quis magni at optio",
-//   },
-//   {
-//     id: 2,
-//     name: "Satya Nadella",
-//     text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque reiciendis inventore iste ratione ex alias quis magni at optio",
-//   },
-//   {
-//     id: 3,
-//     name: "Virat Kohli",
-//     text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque reiciendis inventore iste ratione ex alias quis magni at optio",
-//   },
-//   {
-//     id: 5,
-//     name: "Sachin Tendulkar",
-//     text: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque reiciendis inventore iste ratione ex alias quis magni at optio",
-//   },
-// ];
-
 const ReviewSlider = () => {
   const [ReviewData, setReviews] = useState([]);
   const { id } = useParams();
 
   useEffect(() => {
-      fetch(`http://localhost:5000/api/products/${id}/reviews?page=1&per_page=5`)
+      fetch(`/api/products/${id}/reviews?page=1&per_page=5`)
         .then(res => res.json())
         .then(data => setReviews(data.reviews))  
         .catch(err => console.error("Error fetching reviews:", err));
@@ -91,7 +68,7 @@ const ReviewSlider = () => {
                 <div className="flex flex-col gap-4 shadow-lg py-8 px-6 mx-4 rounded-xl bg-sky-100 bg-primary/10 relative">
                   <div className="mb-2">
                     <img
-                      src={`http://localhost:5000/profile-image/${data.profile_pic}`}
+                      src={`/api/profile-image/${data.profile_pic}`}
                       alt={data.name}
                       className="rounded-full w-20 h-20 mx-auto"
                     />

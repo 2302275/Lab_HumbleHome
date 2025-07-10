@@ -190,7 +190,7 @@ const handlePasswordChange = async (e) => {
         const token = localStorage.getItem("token");
         try {
           const res = await fetch(
-            `http://localhost:5000/my-reviews?page=${page}&per_page=${itemsPerPage}`,
+            `/my-reviews?page=${page}&per_page=${itemsPerPage}`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -309,7 +309,7 @@ const handlePasswordChange = async (e) => {
     if (!window.confirm("Are you sure you want to delete this review?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/reviews/${reviewId}`, {
+      const res = await fetch(`/api/reviews/${reviewId}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
