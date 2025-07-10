@@ -37,6 +37,12 @@ jobs:
         run: docker compose up -d
         working-directory: humblehome
 
+      # Check container status (optional but useful)
+      - name: Show Docker containers status
+        run: docker compose ps
+        working-directory: humblehome
+
+      # Wait for app to be ready (curl retries localhost)
       - name: Wait for app to be ready
         run: |
           sleep 10
@@ -47,7 +53,12 @@ jobs:
         run: python tests/selenium/ui_test.py
         working-directory: humblehome/backend
 
-      # Upload artifacts on failure
+      # On failure, print logs and upload artifacts
+      - name: Show Docker Compose logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
+        working-directory: humblehome
+
       - name: Upload test artifacts
         if: failure()
         uses: actions/upload-artifact@v4
