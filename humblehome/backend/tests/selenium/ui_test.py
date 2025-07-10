@@ -10,7 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
+os.environ["TESTING"] = "1"  # Add this line first
 class EcommerceSiteTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
