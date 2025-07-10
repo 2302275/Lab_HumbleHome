@@ -1,28 +1,30 @@
-from flask import Flask, request, jsonify, g
 from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
-from db import get_db, close_db
+from db import close_db
 import os
 from logging_config import setup_logging
 import sys
 import signal
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import Flask
 
 logger = setup_logging()
+
 
 # Not sure if this is needed, but keeping it for now
 def handle_shutdown(signum, frame):
     logger.info("Flask app is shutting down.")
     sys.exit(0)
-    
+
+
 # Handle SIGINT (Ctrl+C) and SIGTERM (e.g., Docker stop)
 signal.signal(signal.SIGINT, handle_shutdown)
 signal.signal(signal.SIGTERM, handle_shutdown)
 
+
 def create_app():
     app = Flask(__name__)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)  # Handles reverse proxy headers for Flask
+    # Handles reverse proxy headers for Flask
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
     app.config['SECRET_KEY'] = 'supersecretkey'
     app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'uploads', 'models')
 
@@ -34,7 +36,7 @@ def create_app():
     from auth import auth_bp
     from products import products_bp
     from purchase import purchases_bp
-    
+
     app.register_blueprint(profile_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(products_bp)
@@ -42,6 +44,7 @@ def create_app():
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.teardown_appcontext(close_db)
     return app
+
 
 if __name__ == "__main__":
     try:

@@ -6,11 +6,12 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 
-os.environ["TESTING"] = "1"  # Add this line first
+os.environ["TESTING"] = "1"
+
+
 class EcommerceSiteTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -24,21 +25,19 @@ class EcommerceSiteTest(unittest.TestCase):
             service=Service(ChromeDriverManager().install()), options=options
         )
         cls.driver.implicitly_wait(10)
-        cls.base_url = "http://localhost" 
+        cls.base_url = "http://localhost"
         cls.test_email = "newuser@example.com"
         cls.test_password = "NewUserPass123!"
 
     def test_04_test_homepage_products_displayed(self):
         try:
             self.driver.get(f"{self.base_url}/")
-            # Check title contains your store name (adjust if needed)
             self.assertIn("HumbleHome", self.driver.title)
 
-            # Check that product cards are displayed
             products = self.driver.find_elements(By.CLASS_NAME, "product-card")
             self.assertGreater(len(products), 0, "No products found on homepage")
 
-        except Exception as e:
+        except Exception:
             os.makedirs("artifacts", exist_ok=True)
             self.driver.save_screenshot("artifacts/homepage_products.png")
             with open("artifacts/homepage_debug.html", "w", encoding="utf-8") as f:
@@ -53,12 +52,10 @@ class EcommerceSiteTest(unittest.TestCase):
             self.driver.find_element(By.NAME, "password").send_keys("NewUserPass123!")
             self.driver.find_element(By.CLASS_NAME, "register-btn").click()
             time.sleep(2)
-            
-            self.assertIn(
-                "Login", self.driver.page_source
-            )  
 
-        except Exception as e:
+            self.assertIn("Login", self.driver.page_source)
+
+        except Exception:
             os.makedirs("artifacts", exist_ok=True)
             self.driver.save_screenshot("artifacts/register_user.png")
             with open("artifacts/register_debug.html", "w", encoding="utf-8") as f:
@@ -73,20 +70,19 @@ class EcommerceSiteTest(unittest.TestCase):
             self.driver.find_element(By.CLASS_NAME, "login-btn").click()
             time.sleep(2)
 
-            # Wait for one of the expected URLs
             WebDriverWait(self.driver, 10).until(
-                lambda d: d.execute_script("return localStorage.getItem('token') !== null")
+                lambda d: d.execute_script(
+                    "return localStorage.getItem('token') !== null"
+                )
             )
-            
 
-            # Assert that we're either on the home or OTP page
             current_url = self.driver.current_url
             self.assertTrue(
                 "/verify-otp" in current_url or current_url.endswith("/"),
-                f"Unexpected redirect after login: {current_url}"
+                f"Unexpected redirect after login: {current_url}",
             )
 
-        except Exception as e:
+        except Exception:
             os.makedirs("artifacts", exist_ok=True)
             self.driver.save_screenshot("artifacts/login_success.png")
             with open("artifacts/login_debug.html", "w", encoding="utf-8") as f:
@@ -102,19 +98,24 @@ class EcommerceSiteTest(unittest.TestCase):
             time.sleep(2)
 
             current_url = self.driver.current_url
-            self.assertIn("/login", current_url, f"Expected to remain on login page, but got redirected to: {current_url}")
+            self.assertIn(
+                "/login",
+                current_url,
+                f"Expected to remain on login page, but got redirected to: "
+                f"{current_url}",
+            )
 
-        except Exception as e:
+        except Exception:
             os.makedirs("artifacts", exist_ok=True)
             self.driver.save_screenshot("artifacts/login_failure.png")
             with open("artifacts/login_failure_debug.html", "w", encoding="utf-8") as f:
                 f.write(self.driver.page_source)
             raise
-    
+
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
-        
-        
+
+
 if __name__ == "__main__":
     unittest.main()

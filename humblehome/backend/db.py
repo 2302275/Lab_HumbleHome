@@ -3,6 +3,7 @@ import mysql.connector
 
 # This file is for connecting to the database.
 
+
 def get_db():
     if 'db' not in g:
         g.db = mysql.connector.connect(
@@ -12,6 +13,7 @@ def get_db():
             database="humblehome"
         )
     return g.db
+
 
 def close_db(err):
     db = g.pop('db', None)
