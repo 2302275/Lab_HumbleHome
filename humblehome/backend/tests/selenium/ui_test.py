@@ -16,7 +16,7 @@ driver = webdriver.Remote(
 )
 
 try:
-    driver.get("http://host.docker.internal")
+    driver.get("http://nginx")
 
     time.sleep(2)  # wait for the page to load
 

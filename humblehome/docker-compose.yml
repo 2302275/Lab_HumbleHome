@@ -61,6 +61,7 @@ services:
     ports:
       - "4444:4444"
     shm_size: 2g
+    
 volumes:
   dbdata:
 
