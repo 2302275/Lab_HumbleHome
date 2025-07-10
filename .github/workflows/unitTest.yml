@@ -11,6 +11,11 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        
+      - name: Ensure log directory exists and has proper permissions
+        run: |
+          mkdir -p humblehome/var/log/humblehome
+          chmod -R 777 humblehome/var/log/humblehome
 
       - name: Set up Python
         uses: actions/setup-python@v5
