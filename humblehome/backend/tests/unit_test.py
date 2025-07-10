@@ -6,10 +6,7 @@ os.environ["TESTING"] = "1"
 
 def test_login_success():
     url = "http://localhost:5000/api/login"
-    payload = {
-        "login": "newuser@example.com",
-        "password": "NewUserPass123!"
-    }
+    payload = {"login": "newuser@example.com", "password": "NewUserPass123!"}
 
     response = requests.post(url, json=payload)
     assert response.status_code == 200
@@ -18,10 +15,7 @@ def test_login_success():
 
 def test_login_failure():
     url = "http://localhost:5000/api/login"
-    payload = {
-        "login": "wronguser@example.com",
-        "password": "WrongPassword!"
-    }
+    payload = {"login": "wronguser@example.com", "password": "WrongPassword!"}
 
     response = requests.post(url, json=payload)
     assert response.status_code == 401
@@ -33,7 +27,7 @@ def test_register_new_user():
     payload = {
         "username": "newuser1234",
         "email": "newuser1234@example.com",
-        "password": "NewUserPass1234!"
+        "password": "NewUserPass1234!",
     }
 
     response = requests.post(url, json=payload)
@@ -46,7 +40,7 @@ def test_register_new_user_existing_email():
     payload = {
         "username": "existinguser",
         "login": "newuser@example.com",
-        "password": "NewUserPass123!"
+        "password": "NewUserPass123!",
     }
 
     response = requests.post(url, json=payload)

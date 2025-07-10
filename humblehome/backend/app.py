@@ -54,7 +54,7 @@ if __name__ == "__main__":
         # CSP
         @app.after_request
         def set_csp(response):
-            response.headers['Content-Security-Policy'] = (
+            response.headers["Content-Security-Policy"] = (
                 "default-src 'self'; "
                 "script-src 'self'; "
                 "style-src 'self' 'unsafe-inline'; "
