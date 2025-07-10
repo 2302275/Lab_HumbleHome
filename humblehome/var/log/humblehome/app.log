@@ -375,6 +375,7 @@
                                                 INFO: create_app() called
 2025-07-10 19:14:44,258
                                                 INFO: create_app() called
+<<<<<<< Updated upstream
 =======
 2025-07-10 03:59:47,968 INFO: create_app() called
 2025-07-10 03:59:48,576 INFO: create_app() called
@@ -387,4 +388,10 @@
 2025-07-10 04:04:49,287 INFO: User "altius" successfully changed their password
 2025-07-10 05:13:35,228 INFO: create_app() called
 2025-07-10 05:13:35,741 INFO: create_app() called
+>>>>>>> Stashed changes
+=======
+2025-07-10 19:18:19,735
+                                                INFO: New account has been registered with email: newuser1421421421@example.com
+2025-07-10 19:18:20,382
+                                                WARNING: Failed login attempt for 'newuser1234@example.com'
 >>>>>>> Stashed changes
