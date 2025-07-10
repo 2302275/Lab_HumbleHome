@@ -18,6 +18,20 @@ jobs:
       - name: Wait for docker to start up
         run: sleep 10
 
+
+      - name: Wait for container health
+        run: |
+          for i in {1..20}; do
+            status=$(docker inspect --format='{{.State.Health.Status}}' humblehome-frontend-1 || echo "starting")
+            echo "Container health: $status"
+            if [ "$status" = "healthy" ]; then
+              break
+            fi
+            echo "Waiting for container to become healthy..."
+            sleep 3
+          done
+          docker ps
+
       - name: Test Index Page
         run: |
           for i in {1..10}; do
