@@ -12,15 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Python dependencies
-        run: |
-          pip install -r humblehome/backend/requirements.txt
-          pip install selenium webdriver-manager
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: 3.11
+
+      - name: Install Python dependencies
+        run: pip install requests
 
       # Start backend/frontend/nginx locally
       - name: Start app with Docker Compose
