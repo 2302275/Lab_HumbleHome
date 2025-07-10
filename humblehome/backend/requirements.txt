@@ -6,3 +6,4 @@ Werkzeug
 pillow
 flake8
 black
+Selenium

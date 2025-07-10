@@ -1,0 +1,42 @@
+name: UI Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  selenium-test:
+    runs-on: ubuntu-latest
+
+    services:
+      selenium:
+        image: selenium/standalone-chrome
+        ports:
+          - 4444:4444
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Start Docker Compose
+        run: docker-compose up -d db backend frontend
+
+      - name: Wait for services
+        run: |
+          sleep 15
+          curl --retry 10 --retry-connrefused --retry-delay 3 http://localhost:3000
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        working-directory: ./backend
+        run: |
+          pip install selenium
+
+      - name: Run Selenium UI Test
+        working-directory: ./backend
+        run: python tests/selenium/test_ui.py
