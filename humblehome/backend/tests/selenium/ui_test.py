@@ -77,6 +77,7 @@ class EcommerceSiteTest(unittest.TestCase):
             WebDriverWait(self.driver, 10).until(
                 lambda d: d.execute_script("return localStorage.getItem('token') !== null")
             )
+            
 
             # Assert that we're either on the home or OTP page
             current_url = self.driver.current_url
