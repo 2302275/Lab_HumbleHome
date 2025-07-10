@@ -10,6 +10,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Ensure log directory exists and has proper permissions
+        run: |
+          mkdir -p humblehome/var/log/humblehome
+          chmod -R 777 humblehome/var/log/humblehome
+
       - name: Run Docker Compose
         run: |
           docker compose up --build -d
