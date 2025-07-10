@@ -22,9 +22,10 @@ def token_req(f):
             return jsonify({'message':'Token is missing.'}), 401
         
         try:
-            # Check if token is blacklisted
+            data = jwt.decode(token, secretkey, algorithms=['HS256'])
             db = get_db()
             cursor = db.cursor(dictionary=True)
+<<<<<<< HEAD
             cursor.execute("SELECT * FROM refresh_token_blacklist WHERE token = %s", (token,))
             if cursor.fetchone():
                 logger.warning(f"Attempted use of blacklisted token")
@@ -39,6 +40,8 @@ def token_req(f):
                 return jsonify({'message':'Please log in again.'}), 401
             
 
+=======
+>>>>>>> parent of 1313c46 (Secure Session Management)
             cursor.execute("SELECT * FROM users WHERE email = %s", (data['email'],))
             current_user = cursor.fetchone()
             if not current_user:
@@ -48,10 +51,8 @@ def token_req(f):
             return f(current_user, *args, **kwargs)
         except jwt.ExpiredSignatureError:
             # Token Expired
-            logger.info(f"Token expired")
             return jsonify({'message':'Please log in again.'}), 401
         except jwt.InvalidTokenError:
-            logger.warning(f"Invalid token")
-            return jsonify({'message':'Please log in again.'}), 401
+            return jsonify({'message':'Token is invalid.'}), 401
         
     return decorated
