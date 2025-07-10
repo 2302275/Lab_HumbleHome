@@ -15,6 +15,7 @@ jobs:
       - name: Install Chrome and ChromeDriver
         run: |
           sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
           sudo apt-get install -y chromium-browser chromium-chromedriver
           which chromedriver
 
