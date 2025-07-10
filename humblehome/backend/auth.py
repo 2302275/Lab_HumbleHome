@@ -6,6 +6,7 @@ from middleware import token_req
 import smtplib
 from email.mime.text import MIMEText
 import logging, threading
+import os
 
 logger = logging.getLogger('humblehome_logger')  # Custom logger
 secretkey = 'supersecretkey'
