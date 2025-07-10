@@ -1,3 +1,9 @@
+name: UI Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
 jobs:
   selenium-test:
     runs-on: ubuntu-latest
