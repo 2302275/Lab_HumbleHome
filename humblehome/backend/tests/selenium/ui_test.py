@@ -16,7 +16,7 @@ driver = webdriver.Remote(
 
 try:
     # 1. Open homepage
-    driver.get("http://nginx")
+    driver.get("http://localhost")
     time.sleep(2) 
     assert "HumbleHome" in driver.title  # Adjust title accordingly
 
