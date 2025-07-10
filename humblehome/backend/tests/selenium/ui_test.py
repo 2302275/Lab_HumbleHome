@@ -16,8 +16,7 @@ driver = webdriver.Remote(
 )
 
 try:
-    # Your frontend runs at http://localhost:3000
-    driver.get("http://localhost")
+    driver.get("http://host.docker.internal")
 
     time.sleep(2)  # wait for the page to load
 
