@@ -354,3 +354,11 @@
 2025-07-10 10:48:19,017 INFO: User "newuser123" submitted profile update with no changes.
 2025-07-10 10:54:47,220 INFO: User 'newuser123' logged in without OTP
 2025-07-10 10:54:48,167 INFO: User "newuser123" submitted profile update with no changes.
+2025-07-10 15:01:13,755
+                                                INFO: create_app() called
+2025-07-10 15:01:18,555
+                                                INFO: create_app() called
+2025-07-10 15:07:37,334
+                                                INFO: create_app() called
+2025-07-10 15:07:38,022
+                                                INFO: create_app() called
