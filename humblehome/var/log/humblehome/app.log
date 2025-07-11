@@ -395,3 +395,127 @@
 2025-07-10 19:18:20,382
                                                 WARNING: Failed login attempt for 'newuser1234@example.com'
 >>>>>>> Stashed changes
+2025-07-11 05:36:22,631
+                                                INFO: create_app() called
+2025-07-11 05:36:23,149
+                                                INFO: create_app() called
+2025-07-11 05:37:54,946
+                                                INFO: create_app() called
+2025-07-11 05:37:55,422
+                                                INFO: create_app() called
+2025-07-11 05:40:18,764
+                                                INFO: create_app() called
+2025-07-11 05:40:19,275
+                                                INFO: create_app() called
+2025-07-11 05:45:54,452
+                                                INFO: create_app() called
+2025-07-11 05:45:55,100
+                                                INFO: create_app() called
+2025-07-11 05:46:39,043
+                                                INFO: create_app() called
+2025-07-11 05:46:39,796
+                                                INFO: create_app() called
+2025-07-11 05:48:11,625
+                                                INFO: create_app() called
+2025-07-11 05:48:12,216
+                                                INFO: create_app() called
+2025-07-11 05:48:59,309
+                                                INFO: create_app() called
+2025-07-11 05:48:59,810
+                                                INFO: create_app() called
+2025-07-11 05:50:20,274
+                                                INFO: create_app() called
+2025-07-11 05:50:20,978
+                                                INFO: create_app() called
+2025-07-11 05:56:20,448
+                                                INFO: create_app() called
+2025-07-11 05:56:20,993
+                                                INFO: create_app() called
+2025-07-11 05:57:20,863
+                                                INFO: User "admin" retrieved all enquiries.
+                Total enquiries: 9
+2025-07-11 06:01:25,564
+                                                INFO: create_app() called
+2025-07-11 06:01:26,186
+                                                INFO: create_app() called
+2025-07-11 06:03:33,293
+                                                INFO: User "admin" retrieved all enquiries.
+                Total enquiries: 9
+2025-07-11 06:03:39,333
+                                                INFO: User "admin" logged out successfully
+2025-07-11 06:03:44,567
+                                                INFO: User 'Jordan' logged in without OTP
+2025-07-11 06:03:58,373
+                                                INFO: User "Jordan" logged out successfully
+2025-07-11 06:04:55,497
+                                                WARNING: Failed login attempt for 'Jordan'
+2025-07-11 06:04:59,876
+                                                INFO: User 'Jordan' logged in without OTP
+2025-07-11 06:13:41,688
+                                                INFO: User "Jordan"
+                    updated their profile successfully!
+                    -- Fields Updated: full_name
+2025-07-11 06:14:11,921
+                                                INFO: User "Jordan"
+                successfully changed their password
+2025-07-11 06:19:18,957
+                                                INFO: User "Jordan"
+                replied to enquiry ID: 9.
+2025-07-11 06:19:27,992
+                                                INFO: User "Jordan" initiated profile image upload
+2025-07-11 06:19:28,023
+                                                INFO: User "Jordan"
+                    uploaded a new profile image!
+2025-07-11 06:19:56,627
+                                                INFO: User "Jordan" initiated profile image upload
+2025-07-11 06:19:56,631
+                                                INFO: User "Jordan"
+                    uploaded a new profile image!
+2025-07-11 06:25:35,081
+                                                INFO: User "Jordan" initiated profile image upload
+2025-07-11 06:25:35,082
+                                                ERROR: User "Jordan"
+                     upload failed: No file is being uploaded
+2025-07-11 06:25:39,075
+                                                INFO: User "Jordan" initiated profile image upload
+2025-07-11 06:25:39,101
+                                                INFO: User "Jordan"
+                    uploaded a new profile image!
+2025-07-11 06:29:25,824
+                                                INFO: Checkout initiated by "Jordan".
+2025-07-11 06:29:25,825
+                                                INFO: Order created for user "Jordan".
+2025-07-11 06:29:25,826
+                                                INFO: Order items added to "Jordan" order.
+2025-07-11 06:29:42,201
+                                                INFO: User "Jordan" logged out successfully
+2025-07-11 06:29:49,619
+                                                INFO: User 'admin' logged in without OTP
+2025-07-11 06:32:27,151
+                                                INFO: User "admin" retrieved all enquiries.
+                Total enquiries: 9
+2025-07-11 06:32:32,364
+                                                INFO: User "admin" logged out successfully
+2025-07-11 06:36:10,872
+                                                INFO: create_app() called
+2025-07-11 06:36:11,452
+                                                INFO: create_app() called
+2025-07-11 06:36:40,068
+                                                INFO: User 'Jordan' logged in without OTP
+2025-07-11 06:37:03,516
+                                                INFO: Checkout initiated by "Jordan".
+2025-07-11 06:37:03,517
+                                                INFO: Order created for user "Jordan".
+2025-07-11 06:37:03,518
+                                                ERROR: Checkout error for user "
+                     Jordan": 1054 (42S22): Unknown column 'product_id' in 'where clause'
+2025-07-11 06:39:01,755
+                                                INFO: create_app() called
+2025-07-11 06:39:02,263
+                                                INFO: create_app() called
+2025-07-11 06:39:19,622
+                                                INFO: Checkout initiated by "Jordan".
+2025-07-11 06:39:19,625
+                                                INFO: Order created for user "Jordan".
+2025-07-11 06:39:19,636
+                                                INFO: Order items added to "Jordan" order.

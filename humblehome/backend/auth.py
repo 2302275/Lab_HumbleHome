@@ -12,9 +12,8 @@ from middleware import token_req
 import smtplib
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
-import os
 
-load_dotenv()  
+load_dotenv()
 
 logger = logging.getLogger("humblehome_logger")  # Custom logger
 secretkey = os.getenv("SECRET_KEY")
