@@ -83,4 +83,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
         with:
           args: >
-            -Dsonar.branch.name=main
+            -Dsonar.branch.name=master
