@@ -9,6 +9,7 @@ from flask import Flask
 
 logger = setup_logging()
 
+# Testing shit
 
 # Not sure if this is needed, but keeping it for now
 def handle_shutdown(signum, frame):
