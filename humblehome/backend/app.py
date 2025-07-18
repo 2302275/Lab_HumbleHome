@@ -12,6 +12,8 @@ logger = setup_logging()
 # Testing shit again
 
 # Not sure if this is needed, but keeping it for now
+
+
 def handle_shutdown(signum, frame):
     logger.info("Flask app is shutting down.")
     sys.exit(0)
